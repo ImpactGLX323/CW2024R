@@ -1,4 +1,9 @@
-package com.example.demo;
+package com.example.demo.view;
+
+import java.util.Random;
+
+import com.example.demo.model.Cell;
+import com.example.demo.utils.TextMaker;
 
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -9,9 +14,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.util.Random;
-
-class GameScene {
+public class GameScene {
     private static int HEIGHT = 700;
     private static int n = 4;
     private final static int distanceBetweenCells = 10;
@@ -26,7 +29,7 @@ class GameScene {
         LENGTH = (HEIGHT - ((n + 1) * distanceBetweenCells)) / (double) n;
     }
 
-    static double getLENGTH() {
+   public static double getLENGTH() {
         return LENGTH;
     }
 
@@ -256,7 +259,7 @@ class GameScene {
         }
     }
 
-    void game(Scene gameScene, Group root, Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+    public void game(Scene gameScene, Group root, Stage primaryStage, Scene endGameScene, Group endGameRoot) {
         this.root = root;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {

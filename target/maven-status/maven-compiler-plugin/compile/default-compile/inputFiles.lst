@@ -1,8 +1,8 @@
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\Account.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\Cell.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\Controller.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\EndGame.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\GameScene.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\Main.java
-C:\Users\user\Downloads\CW\src\main\java\com\example\demo\TextMaker.java
-C:\Users\user\Downloads\CW\src\main\java\module-info.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/Main.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/controller/Controller.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/model/Account.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/model/Cell.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/utils/TextMaker.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/view/EndGame.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/com/example/demo/view/GameScene.java
+/Users/sami/Documents/GitHub/CW2024R/src/main/java/module-info.java

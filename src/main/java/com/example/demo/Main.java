@@ -1,21 +1,19 @@
 package com.example.demo;
 
+import java.util.Scanner;
+
+import com.example.demo.view.GameScene;
+
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.control.ButtonType;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import javafx.scene.control.Button;
 import javafx.scene.shape.Rectangle;
-
-import java.util.Optional;
-import java.util.Scanner;
+import javafx.stage.Stage;
 
 public class Main extends Application {
     static final int WIDTH = 900;
@@ -59,9 +57,9 @@ public class Main extends Application {
         backgroundOfMenuForPlay.setY(180);
         accountRoot.getChildren().add(backgroundOfMenuForPlay);
 
-        Group gameRoot = new Group();
+        this.gameRoot = new Group();
         setGameRoot(gameRoot);
-        Scene gameScene = new Scene(gameRoot, WIDTH, HEIGHT, Color.rgb(189, 177, 92));
+        this.gameScene = new Scene(gameRoot, WIDTH, HEIGHT, Color.rgb(189, 177, 92));
         setGameScene(gameScene);
         primaryStage.setScene(gameScene);
         GameScene game = new GameScene();

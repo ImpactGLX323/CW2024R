@@ -1,5 +1,6 @@
-package com.example.demo;
+package com.example.demo.model;
 
+import com.example.demo.utils.TextMaker;
 
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -12,15 +13,7 @@ public class Cell {
     private Text textClass;
     private boolean modify = false;
 
-    void setModify(boolean modify) {
-        this.modify = modify;
-    }
-
-    boolean getModify() {
-        return modify;
-    }
-
-    Cell(double x, double y, double scale, Group root) {
+    public Cell(double x, double y, double scale, Group root) {
         rectangle = new Rectangle();
         rectangle.setX(x);
         rectangle.setY(y);
@@ -32,11 +25,19 @@ public class Cell {
         root.getChildren().add(rectangle);
     }
 
-    void setTextClass(Text textClass) {
+    public void setModify(boolean modify) {
+        this.modify = modify;
+    }
+
+    public boolean getModify() {
+        return modify;
+    }
+
+    public void setTextClass(Text textClass) {
         this.textClass = textClass;
     }
 
-    void changeCell(Cell cell) {
+    public void changeCell(Cell cell) {
         TextMaker.changeTwoText(textClass, cell.getTextClass());
         root.getChildren().remove(cell.getTextClass());
         root.getChildren().remove(textClass);
@@ -51,7 +52,7 @@ public class Cell {
         cell.setColorByNumber(cell.getNumber());
     }
 
-    void adder(Cell cell) {
+    public void adder(Cell cell) {
         cell.getTextClass().setText((cell.getNumber() + this.getNumber()) + "");
         textClass.setText("0");
         root.getChildren().remove(textClass);
@@ -59,7 +60,7 @@ public class Cell {
         setColorByNumber(getNumber());
     }
 
-    void setColorByNumber(int number) {
+    public void setColorByNumber(int number) {
         switch (number) {
             case 0:
                 rectangle.setFill(Color.rgb(224, 226, 226, 0.5));
@@ -95,27 +96,23 @@ public class Cell {
                 rectangle.setFill(Color.rgb(250, 0, 44, 0.8));
                 break;
             case 2048:
-                rectangle.setFill(Color.rgb(250,0,0,1));
-
-
+                rectangle.setFill(Color.rgb(250, 0, 0, 1));
         }
-
     }
 
-    double getX() {
+    public double getX() {
         return rectangle.getX();
     }
 
-    double getY() {
+    public double getY() {
         return rectangle.getY();
     }
 
-    int getNumber() {
+    public int getNumber() {
         return Integer.parseInt(textClass.getText());
     }
 
     private Text getTextClass() {
         return textClass;
     }
-
 }
