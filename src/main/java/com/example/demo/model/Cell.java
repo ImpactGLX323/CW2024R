@@ -1,5 +1,7 @@
 package com.example.demo.model;
 
+import java.util.function.Consumer;
+
 import com.example.demo.utils.TextMaker;
 
 import javafx.scene.Group;
@@ -12,6 +14,7 @@ public class Cell {
     private Group root;
     private Text textClass;
     private boolean modify = false;
+    private Consumer<Integer> scoreCallback; // Add this field
 
     public Cell(double x, double y, double scale, Group root) {
         rectangle = new Rectangle();
@@ -23,6 +26,11 @@ public class Cell {
         rectangle.setFill(Color.rgb(224, 226, 226, 0.5));
         this.textClass = TextMaker.getSingleInstance().madeText("0", x, y, root);
         root.getChildren().add(rectangle);
+    }
+
+    // New setter for score callback
+    public void setScoreCallback(Consumer<Integer> callback) {
+        this.scoreCallback = callback;
     }
 
     public void setModify(boolean modify) {
@@ -53,11 +61,16 @@ public class Cell {
     }
 
     public void adder(Cell cell) {
-        cell.getTextClass().setText((cell.getNumber() + this.getNumber()) + "");
+        int mergedValue = cell.getNumber() + this.getNumber();
+        cell.getTextClass().setText(mergedValue + "");
         textClass.setText("0");
         root.getChildren().remove(textClass);
         cell.setColorByNumber(cell.getNumber());
         setColorByNumber(getNumber());
+        // Notify score callback
+        if (scoreCallback != null) {
+            scoreCallback.accept(mergedValue);
+        }
     }
 
     public void setColorByNumber(int number) {

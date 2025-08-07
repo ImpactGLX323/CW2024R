@@ -24,6 +24,7 @@ public class GameScene {
     private final Cell[][] cells = new Cell[gridSize][gridSize];
     private Group root;
     private long score = 0;
+    private Text scoreText; // Store reference to score display
 
     public static void setGridSize(int size) {
         gridSize = size;
@@ -55,6 +56,12 @@ public class GameScene {
                     (i) * cellLength + (i + 1) * DISTANCE_BETWEEN_CELLS, 
                     cellLength, root
                 );
+                // Set score callback for each cell
+                cells[i][j].setScoreCallback(mergedValue -> {
+                    score += mergedValue;
+                    updateScoreDisplay();
+                });
+
             }
         }
     }
@@ -65,7 +72,7 @@ public class GameScene {
         scoreLabel.relocate(750, 100);
         root.getChildren().add(scoreLabel);
         
-        Text scoreText = new Text("0");
+        scoreText = new Text("0");
         scoreText.relocate(750, 150);
         scoreText.setFont(Font.font(20));
         root.getChildren().add(scoreText);
@@ -97,7 +104,6 @@ public class GameScene {
     }
 
     private void updateGameState(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
-        updateScore();
         int emptyCellStatus = checkEmptyCells();
         
         if (emptyCellStatus == -1 && canNotMove()) {
@@ -112,6 +118,7 @@ public class GameScene {
         EndGame.getInstance().endGameShow(endGameScene, endGameRoot, primaryStage, score);
         root.getChildren().clear();
         score = 0;
+        updateScoreDisplay();
     }
 
     private void fillRandomCell(int turn) {
@@ -257,23 +264,28 @@ public class GameScene {
 
     private void moveHorizontally(int i, int j, int des, int sign) {
         if (isValidHorizontalMove(i, j, des, sign)) {
+            int mergedValue = cells[i][j].getNumber() + cells[i][des + sign].getNumber();
             cells[i][j].adder(cells[i][des + sign]);
+            score += mergedValue; // Add this line
+            updateScoreDisplay(); // Add this line to update the UI
             cells[i][des].setModify(true);
         } else if (des != j) {
             cells[i][j].changeCell(cells[i][des]);
         }
     }
-
     private boolean isValidVerticalMove(int i, int j, int des, int sign) {
         return des + sign < gridSize && des + sign >= 0
             && cells[des + sign][j].getNumber() == cells[i][j].getNumber()
             && !cells[des + sign][j].getModify()
             && cells[des + sign][j].getNumber() != 0;
     }
-
+    
     private void moveVertically(int i, int j, int des, int sign) {
         if (isValidVerticalMove(i, j, des, sign)) {
+            int mergedValue = cells[i][j].getNumber() + cells[des + sign][j].getNumber();
             cells[i][j].adder(cells[des + sign][j]);
+            score += mergedValue; // Add this line
+            updateScoreDisplay(); // Add this line to update the UI
             cells[des][j].setModify(true);
         } else if (des != i) {
             cells[i][j].changeCell(cells[des][j]);
@@ -296,12 +308,9 @@ public class GameScene {
         return true;
     }
 
-    private void updateScore() {
-        score = 0;
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                score += cells[i][j].getNumber();
-            }
+    private void updateScoreDisplay() {
+        if (scoreText != null) {
+            scoreText.setText(String.valueOf(score));
         }
     }
 }
