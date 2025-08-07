@@ -16,23 +16,24 @@ public class Main extends Application {
 
     private Group gameRoot;
     private Scene gameScene;
+    private GameScene gameController; // Add GameScene instance
 
     @Override
     public void start(Stage primaryStage) {
-
         // Initialize necessary scenes
         Scene endGameScene = createScene(new Group(), Color.rgb(250, 20, 100, 0.2));
         Group endGameRoot = (Group) endGameScene.getRoot();
 
-        // Initialize the game scene
+        // Initialize the game scene components
         this.gameRoot = new Group();
         this.gameScene = new Scene(gameRoot, WIDTH, HEIGHT, Color.rgb(189, 177, 92));
+        this.gameController = new GameScene(); // Initialize GameScene controller
 
-        // Initialize game logic
-        GameScene game = new GameScene();
-        game.game(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot);
+        // Initialize game logic through the GameScene controller
+        gameController.initializeGame(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot);
 
         primaryStage.setScene(gameScene);
+        primaryStage.setTitle("2048 Game");
         primaryStage.show();
     }
 
@@ -62,4 +63,3 @@ public class Main extends Application {
         launch(args);
     }
 }
-
