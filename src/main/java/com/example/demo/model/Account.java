@@ -1,47 +1,35 @@
 package com.example.demo.model;
 
-import java.util.ArrayList;
-
+/**
+ * Represents a user account with a username and score.
+ */
 public class Account implements Comparable<Account> {
-    private long score = 0;
-    private String userName ;
-    private static ArrayList<Account> accounts = new ArrayList<>();
 
-    public Account(String userName){
-        this.userName=userName;
+    private long score;
+    private final String userName;
+
+    public Account(String userName) {
+        this.userName = userName;
+        this.score = 0;
     }
 
-    @Override
-    public int compareTo(Account o) {
-        return Long.compare(o.getScore(), score);
-    }
-
-    public void addToScore(long score) {
-        this.score += score;
-    }
-
-    private long getScore() {
-        return score;
-    }
-
-    private String getUserName() {
+    public String getUserName() {
         return userName;
     }
 
-    static Account accountHaveBeenExist(String userName){
-        for(Account account : accounts){
-            if(account.getUserName().equals(userName)){
-                return account;
-            }
-        }
-        return null;
-
+    public long getScore() {
+        return score;
     }
 
-    static Account makeNewAccount(String userName){
-        Account account = new Account(userName);
-        accounts.add(account);
-        return account;
+    public void addToScore(long additionalScore) {
+        this.score += additionalScore;
     }
 
+    /**
+     * Accounts are compared based on score in descending order.
+     */
+    @Override
+    public int compareTo(Account other) {
+        return Long.compare(other.getScore(), this.score); // descending order
+    }
 }
