@@ -104,28 +104,27 @@ public class GameScene {
     scoreText.setY(95);
     root.getChildren().add(scoreText);
 
-    // --- Bottom Right Buttons ---
+    // --- Bottom Right Vertical Buttons ---
     double buttonWidth = 130;
     double buttonHeight = 80;
     double spacing = 20;
-    double totalWidth = buttonWidth * 3 + spacing * 2;
-    double startX = WIDTH - totalWidth - 30; // 30px margin from right
-    double yBottom = HEIGHT - buttonHeight - 30; // 30px margin from bottom
+    double startX = WIDTH - buttonWidth - 30; // 30px margin from right
+    double yBottom = HEIGHT - (buttonHeight * 3 + spacing * 2) - 30; // Stack 3 buttons upward from bottom
 
-    // Restart Button
+    // Restart Button (bottom)
     Rectangle restartBox = new Rectangle(buttonWidth, buttonHeight);
     restartBox.setArcWidth(15);
     restartBox.setArcHeight(15);
     restartBox.setFill(Color.rgb(143, 122, 102));
     restartBox.setX(startX);
-    restartBox.setY(yBottom);
+    restartBox.setY(yBottom + 2 * (buttonHeight + spacing));
     root.getChildren().add(restartBox);
 
     Text restartText = new Text("RESTART");
     restartText.setFont(Font.font("Arial", 20));
     restartText.setFill(Color.rgb(255, 255, 255));
     restartText.setX(startX + 20);
-    restartText.setY(yBottom + 50);
+    restartText.setY(yBottom + 2 * (buttonHeight + spacing) + 50);
     root.getChildren().add(restartText);
 
     restartText.setOnMouseClicked(event -> {
@@ -137,37 +136,37 @@ public class GameScene {
         updateScoreDisplay();
     });
 
-  // Main Menu Button
+    // Main Menu Button (middle)
     Rectangle menuBox = new Rectangle(buttonWidth, buttonHeight);
     menuBox.setArcWidth(15);
     menuBox.setArcHeight(15);
     menuBox.setFill(Color.rgb(100, 149, 237));
-    menuBox.setX(startX + buttonWidth + spacing);
-    menuBox.setY(yBottom);
+    menuBox.setX(startX);
+    menuBox.setY(yBottom + (buttonHeight + spacing));
     root.getChildren().add(menuBox);
 
     Text menuText = new Text("MAIN MENU");
     menuText.setFont(Font.font("Arial", 20));
     menuText.setFill(Color.rgb(255, 255, 255));
-    menuText.setX(startX + buttonWidth + spacing + 10);
-    menuText.setY(yBottom + 50);
+    menuText.setX(startX + 10);
+    menuText.setY(yBottom + (buttonHeight + spacing) + 50);
     root.getChildren().add(menuText);
 
     // TODO: Add menuText.setOnMouseClicked(...) to handle main menu navigation
 
-    // Quit Game Button
+    // Quit Game Button (top)
     Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
     quitBox.setArcWidth(15);
     quitBox.setArcHeight(15);
     quitBox.setFill(Color.rgb(220, 20, 60));
-    quitBox.setX(startX + 2 * (buttonWidth + spacing));
+    quitBox.setX(startX);
     quitBox.setY(yBottom);
     root.getChildren().add(quitBox);
 
     Text quitText = new Text("QUIT GAME");
     quitText.setFont(Font.font("Arial", 20));
     quitText.setFill(Color.rgb(255, 255, 255));
-    quitText.setX(startX + 2 * (buttonWidth + spacing) + 10);
+    quitText.setX(startX + 10);
     quitText.setY(yBottom + 50);
     root.getChildren().add(quitText);
 
