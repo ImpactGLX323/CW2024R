@@ -313,4 +313,8 @@ public class GameScene {
             scoreText.setText(String.valueOf(score));
         }
     }
+    public static void setCellLength(double len) {
+    cellLength = len;
+}
+
 }
