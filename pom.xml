@@ -36,7 +36,15 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>${javafx.version}</version>
+            <version>21.0.2</version>
+        </dependency>
+
+        <!-- JavaFX Swing (for JFXPanel) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>21.0.2</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- JUnit -->

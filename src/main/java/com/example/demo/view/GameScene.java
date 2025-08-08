@@ -207,7 +207,7 @@ public class GameScene {
         return gridSize - 1;
     }
 
-    private void moveLeft() {
+    public void moveLeft() {
         for (int i = 0; i < gridSize; i++) {
             for (int j = 1; j < gridSize; j++) {
                 moveHorizontally(i, j, calculateDestination(i, j, 'l'), -1);
@@ -216,7 +216,7 @@ public class GameScene {
         }
     }
 
-    private void moveRight() {
+    public void moveRight() {
         for (int i = 0; i < gridSize; i++) {
             for (int j = gridSize - 1; j >= 0; j--) {
                 moveHorizontally(i, j, calculateDestination(i, j, 'r'), 1);
@@ -225,7 +225,7 @@ public class GameScene {
         }
     }
 
-    private void moveUp() {
+    public void moveUp() {
         for (int j = 0; j < gridSize; j++) {
             for (int i = 1; i < gridSize; i++) {
                 moveVertically(i, j, calculateDestination(i, j, 'u'), -1);
@@ -234,7 +234,7 @@ public class GameScene {
         }
     }
 
-    private void moveDown() {
+    public void moveDown() {
         for (int j = 0; j < gridSize; j++) {
             for (int i = gridSize - 1; i >= 0; i--) {
                 moveVertically(i, j, calculateDestination(i, j, 'd'), 1);
