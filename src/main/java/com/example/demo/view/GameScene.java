@@ -10,6 +10,8 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -17,6 +19,7 @@ import javafx.stage.Stage;
 public class GameScene {
     private static int gridSize = 4;
     private static final int HEIGHT = 700;
+    private static final int WIDTH = 900; // Add this if not present
     private static final int DISTANCE_BETWEEN_CELLS = 10;
     private static double cellLength = calculateCellLength();
     
@@ -48,35 +51,130 @@ public class GameScene {
         setupKeyHandlers(gameScene, primaryStage, endGameScene, endGameRoot);
     }
 
-    private void initializeCells() {
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                cells[i][j] = new Cell(
-                    (j) * cellLength + (j + 1) * DISTANCE_BETWEEN_CELLS,
-                    (i) * cellLength + (i + 1) * DISTANCE_BETWEEN_CELLS, 
-                    cellLength, root
-                );
-                // Set score callback for each cell
-                cells[i][j].setScoreCallback(mergedValue -> {
-                    score += mergedValue;
-                    updateScoreDisplay();
-                });
+   private void initializeCells() {
+    double xOffset = 50;
+    // Shrink the grid by 25%
+    double scaledCellLength = cellLength * 0.75;
+    double gridHeight = gridSize * scaledCellLength + (gridSize + 1) * DISTANCE_BETWEEN_CELLS;
+    double yOffset = 180; // Adjust as needed for your layout
 
-            }
+    for (int i = 0; i < gridSize; i++) {
+        for (int j = 0; j < gridSize; j++) {
+            double x = xOffset + j * scaledCellLength + (j + 1) * DISTANCE_BETWEEN_CELLS;
+            double y = yOffset + i * scaledCellLength + (i + 1) * DISTANCE_BETWEEN_CELLS;
+
+            cells[i][j] = new Cell(x, y, scaledCellLength, root);
+
+            // Set score callback
+            cells[i][j].setScoreCallback(mergedValue -> {
+                score += mergedValue;
+                updateScoreDisplay();
+            });
         }
     }
-
+}
     private void setupScoreDisplay() {
-        Text scoreLabel = new Text("SCORE :");
-        scoreLabel.setFont(Font.font(30));
-        scoreLabel.relocate(750, 100);
-        root.getChildren().add(scoreLabel);
-        
-        scoreText = new Text("0");
-        scoreText.relocate(750, 150);
-        scoreText.setFont(Font.font(20));
-        root.getChildren().add(scoreText);
-    }
+    // Title
+    Text title = new Text("Crack 2048");
+    title.setFont(Font.font("Arial", 48));
+    title.setFill(Color.rgb(119, 110, 101));
+    title.setX(320); // Centered horizontally
+    title.setY(80);
+    root.getChildren().add(title);
+    // Score Box
+    Rectangle scoreBox = new Rectangle(130, 80);
+    scoreBox.setArcWidth(15);
+    scoreBox.setArcHeight(15);
+    scoreBox.setFill(Color.rgb(119, 110, 101));
+    scoreBox.setX(700);
+    scoreBox.setY(40);
+    root.getChildren().add(scoreBox);
+
+    Text scoreLabel = new Text("SCORE");
+    scoreLabel.setFont(Font.font("Arial", 20));
+    scoreLabel.setFill(Color.rgb(238, 228, 218));
+    scoreLabel.setX(720);
+    scoreLabel.setY(65);
+    root.getChildren().add(scoreLabel);
+
+    scoreText = new Text("0");
+    scoreText.setFont(Font.font("Arial", 24));
+    scoreText.setFill(Color.rgb(255, 255, 255));
+    scoreText.setX(735);
+    scoreText.setY(95);
+    root.getChildren().add(scoreText);
+
+    // --- Bottom Right Buttons ---
+    double buttonWidth = 130;
+    double buttonHeight = 80;
+    double spacing = 20;
+    double totalWidth = buttonWidth * 3 + spacing * 2;
+    double startX = WIDTH - totalWidth - 30; // 30px margin from right
+    double yBottom = HEIGHT - buttonHeight - 30; // 30px margin from bottom
+
+    // Restart Button
+    Rectangle restartBox = new Rectangle(buttonWidth, buttonHeight);
+    restartBox.setArcWidth(15);
+    restartBox.setArcHeight(15);
+    restartBox.setFill(Color.rgb(143, 122, 102));
+    restartBox.setX(startX);
+    restartBox.setY(yBottom);
+    root.getChildren().add(restartBox);
+
+    Text restartText = new Text("RESTART");
+    restartText.setFont(Font.font("Arial", 20));
+    restartText.setFill(Color.rgb(255, 255, 255));
+    restartText.setX(startX + 20);
+    restartText.setY(yBottom + 50);
+    root.getChildren().add(restartText);
+
+    restartText.setOnMouseClicked(event -> {
+        root.getChildren().clear();
+        initializeCells();
+        setupScoreDisplay();
+        startGame();
+        score = 0;
+        updateScoreDisplay();
+    });
+
+  // Main Menu Button
+    Rectangle menuBox = new Rectangle(buttonWidth, buttonHeight);
+    menuBox.setArcWidth(15);
+    menuBox.setArcHeight(15);
+    menuBox.setFill(Color.rgb(100, 149, 237));
+    menuBox.setX(startX + buttonWidth + spacing);
+    menuBox.setY(yBottom);
+    root.getChildren().add(menuBox);
+
+    Text menuText = new Text("MAIN MENU");
+    menuText.setFont(Font.font("Arial", 20));
+    menuText.setFill(Color.rgb(255, 255, 255));
+    menuText.setX(startX + buttonWidth + spacing + 10);
+    menuText.setY(yBottom + 50);
+    root.getChildren().add(menuText);
+
+    // TODO: Add menuText.setOnMouseClicked(...) to handle main menu navigation
+
+    // Quit Game Button
+    Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
+    quitBox.setArcWidth(15);
+    quitBox.setArcHeight(15);
+    quitBox.setFill(Color.rgb(220, 20, 60));
+    quitBox.setX(startX + 2 * (buttonWidth + spacing));
+    quitBox.setY(yBottom);
+    root.getChildren().add(quitBox);
+
+    Text quitText = new Text("QUIT GAME");
+    quitText.setFont(Font.font("Arial", 20));
+    quitText.setFill(Color.rgb(255, 255, 255));
+    quitText.setX(startX + 2 * (buttonWidth + spacing) + 10);
+    quitText.setY(yBottom + 50);
+    root.getChildren().add(quitText);
+
+    quitText.setOnMouseClicked(event -> {
+        Platform.exit();
+    });
+}
 
     private void startGame() {
         fillRandomCell(1);
