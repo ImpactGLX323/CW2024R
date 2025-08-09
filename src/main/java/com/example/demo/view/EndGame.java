@@ -23,61 +23,81 @@ public class EndGame {
     public void endGameShow(
         Scene endGameScene, Group root, Stage primaryStage, long score,
         Runnable onRestart, Runnable onMenu, Runnable onQuit
-) {
-    Text text = new Text("GAME OVER");
-    text.relocate(250, 250);
-    text.setFont(Font.font(80));
-    root.getChildren().add(text);
-
-    Text scoreText = new Text(String.valueOf(score));
-    scoreText.setFill(Color.BLACK);
-    scoreText.relocate(250, 600);
-    scoreText.setFont(Font.font(80));
-    root.getChildren().add(scoreText);
-
-    double buttonWidth = 200;
-    double buttonHeight = 80;
-    double spacing = 30;
-    double centerX = 350;
-    double startY = 750;
-
-    Button restartButton = new Button("RESTART");
-    restartButton.setPrefSize(buttonWidth, buttonHeight);
-    restartButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66;");
-    restartButton.relocate(centerX, startY);
-    root.getChildren().add(restartButton);
-
-    Button menuButton = new Button("MAIN MENU");
-    menuButton.setPrefSize(buttonWidth, buttonHeight);
-    menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66;");
-    menuButton.relocate(centerX, startY + buttonHeight + spacing);
-    root.getChildren().add(menuButton);
-
-    Button quitButton = new Button("QUIT");
-    quitButton.setPrefSize(buttonWidth, buttonHeight);
-    quitButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66;");
-    quitButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
-    root.getChildren().add(quitButton);
-
-    restartButton.setOnAction(e -> {
+    ) {
+        // Clear any existing children
         root.getChildren().clear();
-        if (onRestart != null) onRestart.run();
-    });
-
-    menuButton.setOnAction(e -> {
-        root.getChildren().clear();
-        if (onMenu != null) onMenu.run();
-    });
-
-    quitButton.setOnAction(e -> {
-        var alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Quit Dialog");
-        alert.setHeaderText("Quit from this page");
-        alert.setContentText("Are you sure?");
-        var result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (onQuit != null) onQuit.run();
-        }
-    });
-}
+        
+        // Set dark background
+        endGameScene.setFill(Color.web("#2d2d2d"));
+        
+        // Game Over text (top)
+        Text gameOverText = new Text("GAME OVER");
+        gameOverText.setFont(Font.font("Arial", 80));
+        gameOverText.setFill(Color.WHITE);
+        
+        // Center the text horizontally
+        gameOverText.setX((endGameScene.getWidth() - gameOverText.getLayoutBounds().getWidth()) / 2);
+        gameOverText.setY(150);
+        root.getChildren().add(gameOverText);
+        
+        // Score text (middle)
+        Text scoreText = new Text("SCORE: " + score);
+        scoreText.setFont(Font.font("Arial", 60));
+        scoreText.setFill(Color.WHITE);
+        
+        // Center the score text
+        scoreText.setX((endGameScene.getWidth() - scoreText.getLayoutBounds().getWidth()) / 2);
+        scoreText.setY(300);
+        root.getChildren().add(scoreText);
+        
+        // Button configuration
+        double buttonWidth = 300;
+        double buttonHeight = 60;
+        double spacing = 20;
+        double centerX = (endGameScene.getWidth() - buttonWidth) / 2;
+        double startY = 400; // Position below the score
+        
+        // Restart Button
+        Button restartButton = new Button("RESTART");
+        restartButton.setPrefSize(buttonWidth, buttonHeight);
+        restartButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+        restartButton.relocate(centerX, startY);
+        root.getChildren().add(restartButton);
+        
+        // Menu Button
+        Button menuButton = new Button("MAIN MENU");
+        menuButton.setPrefSize(buttonWidth, buttonHeight);
+        menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+        menuButton.relocate(centerX, startY + buttonHeight + spacing);
+        root.getChildren().add(menuButton);
+        
+        // Quit Button
+        Button quitButton = new Button("QUIT");
+        quitButton.setPrefSize(buttonWidth, buttonHeight);
+        quitButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+        quitButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
+        root.getChildren().add(quitButton);
+        
+        // Button actions (keep existing functionality)
+        restartButton.setOnAction(e -> {
+            root.getChildren().clear();
+            if (onRestart != null) onRestart.run();
+        });
+        
+        menuButton.setOnAction(e -> {
+            root.getChildren().clear();
+            if (onMenu != null) onMenu.run();
+        });
+        
+        quitButton.setOnAction(e -> {
+            var alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Quit Dialog");
+            alert.setHeaderText("Quit from this page");
+            alert.setContentText("Are you sure?");
+            var result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                if (onQuit != null) onQuit.run();
+            }
+        });
+    }
 }
