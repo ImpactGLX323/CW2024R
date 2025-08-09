@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.view.GameScene;
+import com.example.demo.view.MainMenu;
 
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -18,7 +19,7 @@ public class Main extends Application {
     private Scene gameScene;
     private Scene menuScene;
     private Group menuRoot;
-    private GameScene gameController; // Add GameScene instance
+    private GameScene gameController;
 
     @Override
     public void start(Stage primaryStage) {
@@ -30,30 +31,45 @@ public class Main extends Application {
         this.menuRoot = new Group();
         this.menuScene = new Scene(menuRoot, WIDTH, HEIGHT, Color.rgb(220, 220, 220, 0.9));
         createMenuDecorations(menuRoot);
-        
+
         // Initialize the game scene components
         this.gameRoot = new Group();
         this.gameScene = new Scene(gameRoot, WIDTH, HEIGHT, Color.rgb(189, 177, 92));
-        this.gameController = new GameScene(); // Initialize GameScene controller
+        this.gameController = new GameScene();
 
-        // Initialize game logic through the GameScene controller
-        gameController.initializeGame(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot, menuScene, menuRoot);
+        // Prepare the main menu
+        MainMenu mainMenu = new MainMenu();
+        mainMenu.showMenu(
+            menuScene, menuRoot, primaryStage,
+            // onNewGame
+            () -> {
+                gameRoot.getChildren().clear();
+                gameController.initializeGame(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot, menuScene, menuRoot);
+                primaryStage.setScene(gameScene);
+            },
+            // onLogin
+            () -> {
+                // TODO: Show login dialog or screen
+            },
+            // onManual
+            () -> {
+                // TODO: Show manual dialog or screen
+            },
+            // onQuit
+            () -> {
+                primaryStage.close();
+            }
+        );
 
-        primaryStage.setScene(gameScene);
+        primaryStage.setScene(menuScene); // Start with the main menu
         primaryStage.setTitle("2048 Game");
         primaryStage.show();
     }
 
-    /**
-     * Utility method to create a Scene with given background color.
-     */
     private Scene createScene(Group root, Color backgroundColor) {
         return new Scene(root, WIDTH, HEIGHT, backgroundColor);
     }
 
-    /**
-     * Optionally create decorated rectangles in scenes (can be expanded later).
-     */
     private void createMenuDecorations(Group menuRoot) {
         Rectangle backgroundOfMenu = new Rectangle(240, 120, Color.rgb(120, 120, 120, 0.2));
         backgroundOfMenu.setX(WIDTH / 2 - 120);
