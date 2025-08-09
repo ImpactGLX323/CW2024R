@@ -238,7 +238,6 @@ public class GameScene {
             },
             // onMenu:
             () -> {
-                root.getChildren().clear();
                 menuRoot.getChildren().clear();
                 primaryStage.setScene(menuScene);
             },
@@ -249,7 +248,7 @@ public class GameScene {
             }
         );
     }
-    
+
     private void fillRandomCell(int turn) {
         Cell randomCell = findRandomEmptyCell();
         if (randomCell == null) return;

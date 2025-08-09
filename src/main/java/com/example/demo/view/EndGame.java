@@ -1,10 +1,15 @@
 package com.example.demo.view;
 
+import java.io.InputStream;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -19,78 +24,119 @@ public class EndGame {
         return singleInstance;
     }
 
-    // Pass in actions so EndGame stays decoupled from GameScene/Main
+    private static Font loadRetroFont(double size) {
+        String[] candidates = {
+            "/fonts/Orbitron-VariableFont_wght.ttf",
+            "/fonts/VT323-Regular.ttf"
+        };
+        for (String path : candidates) {
+            try (InputStream is = EndGame.class.getResourceAsStream(path)) {
+                if (is != null) {
+                    Font f = Font.loadFont(is, size);
+                    if (f != null) return f;
+                }
+            } catch (Exception ignored) {}
+        }
+        return Font.font("Arial", size);
+    }
+
     public void endGameShow(
         Scene endGameScene, Group root, Stage primaryStage, long score,
         Runnable onRestart, Runnable onMenu, Runnable onQuit
     ) {
-        // Clear any existing children
         root.getChildren().clear();
-        
-        // Set dark background
-        endGameScene.setFill(Color.web("#2d2d2d"));
-        
-        // Game Over text (top)
+
+        // --- Set background image ---
+        Image bgImage = new Image(getClass().getResource("/com/example/demo/image/Crack2048.jpg").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(endGameScene.getWidth());
+        bgView.setFitHeight(endGameScene.getHeight());
+        bgView.setPreserveRatio(false);
+        root.getChildren().add(bgView);
+
+        // Set dark overlay for readability
+        javafx.scene.shape.Rectangle overlay = new javafx.scene.shape.Rectangle(
+            endGameScene.getWidth(), endGameScene.getHeight(), Color.rgb(15, 15, 20, 0.7)
+        );
+        root.getChildren().add(overlay);
+
+        // Load fonts
+        Font titleFont = loadRetroFont(72);
+        Font scoreFont = loadRetroFont(48);
+        Font buttonFont = loadRetroFont(20);
+
+        // Title (top center)
         Text gameOverText = new Text("GAME OVER");
-        gameOverText.setFont(Font.font("Arial", 80));
-        gameOverText.setFill(Color.WHITE);
-        
-        // Center the text horizontally
-        gameOverText.setX((endGameScene.getWidth() - gameOverText.getLayoutBounds().getWidth()) / 2);
+        gameOverText.setFont(titleFont);
+        gameOverText.setFill(Color.web("#E2E8F0"));
+        DropShadow glow = new DropShadow();
+        glow.setColor(Color.web("#00E5FF", 0.6));
+        glow.setRadius(20);
+        glow.setSpread(0.2);
+        gameOverText.setEffect(glow);
+        gameOverText.applyCss();
+        double titleX = (endGameScene.getWidth() - gameOverText.getLayoutBounds().getWidth()) / 2.0;
+        gameOverText.setX(Math.max(20, titleX));
         gameOverText.setY(150);
         root.getChildren().add(gameOverText);
-        
+
         // Score text (middle)
         Text scoreText = new Text("SCORE: " + score);
-        scoreText.setFont(Font.font("Arial", 60));
-        scoreText.setFill(Color.WHITE);
-        
-        // Center the score text
-        scoreText.setX((endGameScene.getWidth() - scoreText.getLayoutBounds().getWidth()) / 2);
-        scoreText.setY(300);
+        scoreText.setFont(scoreFont);
+        scoreText.setFill(Color.web("#E2E8F0"));
+        scoreText.applyCss();
+        double scoreX = (endGameScene.getWidth() - scoreText.getLayoutBounds().getWidth()) / 2.0;
+        scoreText.setX(Math.max(20, scoreX));
+        scoreText.setY(260);
         root.getChildren().add(scoreText);
-        
+
         // Button configuration
         double buttonWidth = 300;
         double buttonHeight = 60;
         double spacing = 20;
-        double centerX = (endGameScene.getWidth() - buttonWidth) / 2;
-        double startY = 400; // Position below the score
-        
-        // Restart Button
-        Button restartButton = new Button("RESTART");
-        restartButton.setPrefSize(buttonWidth, buttonHeight);
-        restartButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+        double centerX = (endGameScene.getWidth() - buttonWidth) / 2.0;
+        double startY = 350;
+
+        // Colors
+        String buttonBg = "#1a1f2b";
+        String buttonBgHover = "#232a3a";
+        String buttonText = "#D6E3FF";
+        String accent = "#00E5FF";
+
+        // Buttons
+        Button restartButton = makeButton("RESTART", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
         restartButton.relocate(centerX, startY);
-        root.getChildren().add(restartButton);
-        
-        // Menu Button
-        Button menuButton = new Button("MAIN MENU");
-        menuButton.setPrefSize(buttonWidth, buttonHeight);
-        menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+
+        Button menuButton = makeButton("MAIN MENU", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
         menuButton.relocate(centerX, startY + buttonHeight + spacing);
-        root.getChildren().add(menuButton);
-        
-        // Quit Button
-        Button quitButton = new Button("QUIT");
-        quitButton.setPrefSize(buttonWidth, buttonHeight);
-        quitButton.setStyle("-fx-text-fill: white; -fx-background-color: #8f7a66; -fx-font-size: 20;");
+
+        Button quitButton = makeButton("QUIT", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, "#FF6B6B", buttonBgHover);
         quitButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
-        root.getChildren().add(quitButton);
-        
-        // Button actions (keep existing functionality)
+
+        root.getChildren().addAll(restartButton, menuButton, quitButton);
+
+        // Button actions
         restartButton.setOnAction(e -> {
             root.getChildren().clear();
             if (onRestart != null) onRestart.run();
         });
-        
+
         menuButton.setOnAction(e -> {
             root.getChildren().clear();
-            if (onMenu != null) onMenu.run();
+            MainMenu mainMenu = new MainMenu();
+            mainMenu.showMenu(
+                endGameScene,   // reuse the same scene
+                root,
+                primaryStage,
+                () -> { if (onRestart != null) onRestart.run(); }, // when "NEW GAME" in main menu is clicked
+                null,           // LOGIN action (set later if needed)
+                null,           // MANUAL action (set later if needed)
+                onQuit          // pass existing quit action
+            );
         });
-        
+
         quitButton.setOnAction(e -> {
-            var alert = new Alert(Alert.AlertType.CONFIRMATION);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Quit Dialog");
             alert.setHeaderText("Quit from this page");
             alert.setContentText("Are you sure?");
@@ -99,5 +145,30 @@ public class EndGame {
                 if (onQuit != null) onQuit.run();
             }
         });
+    }
+
+    private Button makeButton(String text,
+                              double w, double h, Font font,
+                              String bg, String fg, String borderAccent, String hoverBg) {
+        Button b = new Button(text);
+        b.setPrefSize(w, h);
+        b.setFont(font);
+        b.setStyle(baseButtonStyle(bg, fg, borderAccent));
+        b.setOnMouseEntered(ev -> b.setStyle(baseButtonStyle(hoverBg, fg, borderAccent)));
+        b.setOnMouseExited(ev -> b.setStyle(baseButtonStyle(bg, fg, borderAccent)));
+        return b;
+    }
+
+    private String baseButtonStyle(String bg, String fg, String borderAccent) {
+        return String.join("",
+            "-fx-background-color: ", bg, ";",
+            "-fx-text-fill: ", fg, ";",
+            "-fx-background-radius: 14;",
+            "-fx-border-radius: 14;",
+            "-fx-border-width: 2;",
+            "-fx-border-color: ", borderAccent, ";",
+            "-fx-cursor: hand;",
+            "-fx-font-weight: bold;"
+        );
     }
 }
