@@ -32,6 +32,8 @@ public class GameScene {
     private Group gameRoot;
     private Scene menuScene;
     private Group menuRoot;
+    private Scene gameSceneRef;
+    private Group gameRootRef;
 
     public static void setGridSize(int size) {
         gridSize = size;
@@ -49,8 +51,8 @@ public class GameScene {
     public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
                           Scene endGameScene, Group endGameRoot,
                           Scene menuScene, Group menuRoot) {
-        this.gameScene = gameScene;
-        this.gameRoot = gameRoot;
+        this.gameSceneRef = gameScene;
+        this.gameRootRef = gameRoot;
         this.menuScene = menuScene;
         this.menuRoot = menuRoot;
         this.root = gameRoot;
@@ -221,15 +223,33 @@ public class GameScene {
 
     private void endGame(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
         primaryStage.setScene(endGameScene);
+
         EndGame.getInstance().endGameShow(
             endGameScene, endGameRoot, primaryStage, score,
-            gameScene, gameRoot, menuScene, menuRoot
+            // onRestart:
+            () -> {
+                gameRootRef.getChildren().clear();
+                score = 0;
+                initializeCells();
+                setupScoreDisplay();
+                startGame();
+                updateScoreDisplay();
+                primaryStage.setScene(gameSceneRef);
+            },
+            // onMenu:
+            () -> {
+                root.getChildren().clear();
+                menuRoot.getChildren().clear();
+                primaryStage.setScene(menuScene);
+            },
+            // onQuit:
+            () -> {
+                endGameRoot.getChildren().clear();
+                Platform.exit();
+            }
         );
-        root.getChildren().clear();
-        score = 0;
-        updateScoreDisplay();
     }
-
+    
     private void fillRandomCell(int turn) {
         Cell randomCell = findRandomEmptyCell();
         if (randomCell == null) return;
