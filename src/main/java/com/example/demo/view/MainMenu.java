@@ -6,6 +6,8 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -27,7 +29,7 @@ public class MainMenu {
                 }
             } catch (Exception ignored) {}
         }
-        return Font.font("Arial", size); // fallback
+        return Font.font("Arial", size); // fallbacks to Arial 
     }
 
     public void showMenu(
@@ -35,7 +37,13 @@ public class MainMenu {
             Runnable onNewGame, Runnable onLogin, Runnable onManual, Runnable onQuit
     ) {
         root.getChildren().clear();
-
+        // --- Set background image ---
+        Image bgImage = new Image(getClass().getResource("/com/example/demo/image/Crack2048.jpg").toExternalForm());
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(menuScene.getWidth());
+        bgView.setFitHeight(menuScene.getHeight());
+        bgView.setPreserveRatio(false);
+        root.getChildren().add(bgView);
         // Dark, minimal background
         root.setStyle("-fx-background-color: #0f0f14;"); // deep charcoal
         // If the Group is not the scene root, also set on scene root:
