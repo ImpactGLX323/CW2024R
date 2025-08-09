@@ -16,6 +16,8 @@ public class Main extends Application {
 
     private Group gameRoot;
     private Scene gameScene;
+    private Scene menuScene;
+    private Group menuRoot;
     private GameScene gameController; // Add GameScene instance
 
     @Override
@@ -24,13 +26,18 @@ public class Main extends Application {
         Scene endGameScene = createScene(new Group(), Color.rgb(250, 20, 100, 0.2));
         Group endGameRoot = (Group) endGameScene.getRoot();
 
+        // Initialize the menu scene components FIRST
+        this.menuRoot = new Group();
+        this.menuScene = new Scene(menuRoot, WIDTH, HEIGHT, Color.rgb(220, 220, 220, 0.9));
+        createMenuDecorations(menuRoot);
+        
         // Initialize the game scene components
         this.gameRoot = new Group();
         this.gameScene = new Scene(gameRoot, WIDTH, HEIGHT, Color.rgb(189, 177, 92));
         this.gameController = new GameScene(); // Initialize GameScene controller
 
         // Initialize game logic through the GameScene controller
-        gameController.initializeGame(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot);
+        gameController.initializeGame(gameScene, gameRoot, primaryStage, endGameScene, endGameRoot, menuScene, menuRoot);
 
         primaryStage.setScene(gameScene);
         primaryStage.setTitle("2048 Game");

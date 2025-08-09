@@ -28,6 +28,10 @@ public class GameScene {
     private Group root;
     private long score = 0;
     private Text scoreText; // Store reference to score display
+    private Scene gameScene;
+    private Group gameRoot;
+    private Scene menuScene;
+    private Group menuRoot;
 
     public static void setGridSize(int size) {
         gridSize = size;
@@ -42,9 +46,14 @@ public class GameScene {
         return (HEIGHT - ((gridSize + 1) * DISTANCE_BETWEEN_CELLS)) / (double) gridSize;
     }
 
-    public void initializeGame(Scene gameScene, Group root, Stage primaryStage, 
-                             Scene endGameScene, Group endGameRoot) {
-        this.root = root;
+    public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
+                          Scene endGameScene, Group endGameRoot,
+                          Scene menuScene, Group menuRoot) {
+        this.gameScene = gameScene;
+        this.gameRoot = gameRoot;
+        this.menuScene = menuScene;
+        this.menuRoot = menuRoot;
+        this.root = gameRoot;
         initializeCells();
         setupScoreDisplay();
         startGame();
@@ -212,7 +221,10 @@ public class GameScene {
 
     private void endGame(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
         primaryStage.setScene(endGameScene);
-        EndGame.getInstance().endGameShow(endGameScene, endGameRoot, primaryStage, score);
+        EndGame.getInstance().endGameShow(
+            endGameScene, endGameRoot, primaryStage, score,
+            gameScene, gameRoot, menuScene, menuRoot
+        );
         root.getChildren().clear();
         score = 0;
         updateScoreDisplay();
