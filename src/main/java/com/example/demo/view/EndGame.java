@@ -40,10 +40,16 @@ public class EndGame {
         return Font.font("Arial", size);
     }
 
-    public void endGameShow(
-        Scene endGameScene, Group root, Stage primaryStage, long score,
-        Runnable onRestart, Runnable onMenu, Runnable onQuit
-    ) {
+    public void endGameShow(Scene endGameScene, Group root, Stage primaryStage, long score) {
+        endGameShow(endGameScene, root, primaryStage, score,
+            () -> {},   // onRestart
+            () -> {},   // onMenu
+            () -> {}    // onQuit
+        );
+    }
+
+    public void endGameShow(Scene endGameScene, Group root, Stage primaryStage, long score,
+                             Runnable onRestart, Runnable onMenu, Runnable onQuit) {
         root.getChildren().clear();
 
         // --- Set background image ---
