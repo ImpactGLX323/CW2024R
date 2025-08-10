@@ -17,6 +17,16 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class GameScene {
+
+        // --- LEVELS: {gridSize, targetTile} ---
+    private static final int[][] LEVELS = {
+        {4, 2048},  // Level 1: 4x4, target 2048
+        {8, 4096},  // Level 2: 8x8, target 4096
+        {10, 8192}  // Level 3: 10x10, target 8192
+    };
+
+    private int levelIndex = 0;      // starts at level 1 (index 0)
+    private boolean won = false;     // preventing double popups
     private static int gridSize = 4;
     private static final int HEIGHT = 700;
     private static final int WIDTH = 900; // Add this if not present
@@ -24,7 +34,7 @@ public class GameScene {
     private static double cellLength = calculateCellLength();
     
     private final TextMaker textMaker = TextMaker.getSingleInstance();
-    private final Cell[][] cells = new Cell[gridSize][gridSize];
+    private Cell[][] cells; //cahnged this to dynamic not final
     private Group root;
     private long score = 0;
     private Text scoreText; // Store reference to score display
@@ -63,27 +73,44 @@ public class GameScene {
     }
 
    private void initializeCells() {
-    double xOffset = 50;
-    // Shrink the grid by 25%
-    double scaledCellLength = cellLength * 0.75;
-    double gridHeight = gridSize * scaledCellLength + (gridSize + 1) * DISTANCE_BETWEEN_CELLS;
-    double yOffset = 180; // Adjust as needed for your layout
+        gridSize = currentGridSize();
+            cellLength = calculateCellLength();
 
-    for (int i = 0; i < gridSize; i++) {
-        for (int j = 0; j < gridSize; j++) {
-            double x = xOffset + j * scaledCellLength + (j + 1) * DISTANCE_BETWEEN_CELLS;
-            double y = yOffset + i * scaledCellLength + (i + 1) * DISTANCE_BETWEEN_CELLS;
+        // allocate cells fresh each time (different level sizes)
+        cells = new Cell[gridSize][gridSize];
+        double xOffset = 50;
 
-            cells[i][j] = new Cell(x, y, scaledCellLength, root);
+        // shrink only for small grids; big grids are already small
+        double scaledCellLength = (gridSize <= 4) ? cellLength * 0.75 : cellLength;
 
-            // Set score callback
-            cells[i][j].setScoreCallback(mergedValue -> {
-                score += mergedValue;
-                updateScoreDisplay();
-            });
+        double yOffset = 180;
+
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                double x = xOffset + j * scaledCellLength + (j + 1) * DISTANCE_BETWEEN_CELLS;
+                double y = yOffset + i * scaledCellLength + (i + 1) * DISTANCE_BETWEEN_CELLS;
+
+                cells[i][j] = new Cell(x, y, scaledCellLength, root);
+
+                // score callback preserved
+                cells[i][j].setScoreCallback(mergedValue -> {
+                    score += mergedValue;
+                    updateScoreDisplay();
+                });
+            }
         }
     }
-}
+
+    private boolean reachedTarget() {
+        int target = currentTargetTile();
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (cells[i][j].getNumber() >= target) return true;
+            }
+        }
+        return false;
+    }
+
     private void setupScoreDisplay() {
     // Title
     Text title = new Text("Crack 2048");
@@ -126,7 +153,7 @@ public class GameScene {
     Rectangle restartBox = new Rectangle(buttonWidth, buttonHeight);
     restartBox.setArcWidth(15);
     restartBox.setArcHeight(15);
-    restartBox.setFill(Color.rgb(143, 122, 102));
+    restartBox.setFill(Color.rgb(96, 96, 96));
     restartBox.setX(startX);
     restartBox.setY(yBottom + 2 * (buttonHeight + spacing));
     root.getChildren().add(restartBox);
@@ -151,7 +178,7 @@ public class GameScene {
     Rectangle menuBox = new Rectangle(buttonWidth, buttonHeight);
     menuBox.setArcWidth(15);
     menuBox.setArcHeight(15);
-    menuBox.setFill(Color.rgb(100, 149, 237));
+    menuBox.setFill(Color.rgb(96, 96, 96));
     menuBox.setX(startX);
     menuBox.setY(yBottom + (buttonHeight + spacing));
     root.getChildren().add(menuBox);
@@ -169,7 +196,7 @@ public class GameScene {
     Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
     quitBox.setArcWidth(15);
     quitBox.setArcHeight(15);
-    quitBox.setFill(Color.rgb(220, 20, 60));
+    quitBox.setFill(Color.rgb(96, 96, 96));
     quitBox.setX(startX);
     quitBox.setY(yBottom);
     root.getChildren().add(quitBox);
@@ -211,9 +238,15 @@ public class GameScene {
         }
     }
 
-    private void updateGameState(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+        private void updateGameState(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+        if (!won && reachedTarget()) {
+            won = true;
+            showWin(primaryStage, endGameScene, endGameRoot);
+            return;
+        }
+
         int emptyCellStatus = checkEmptyCells();
-        
+
         if (emptyCellStatus == -1 && canNotMove()) {
             endGame(primaryStage, endGameScene, endGameRoot);
         } else if (emptyCellStatus == 1) {
@@ -445,4 +478,61 @@ public class GameScene {
     cellLength = len;
 }
 
+
+//HELPERS FOR NEW LEVEL 
+    private int currentGridSize() {
+        return LEVELS[levelIndex][0];
+    }
+
+    private int currentTargetTile() {
+        return LEVELS[levelIndex][1];
+    }
+
+    private boolean isLastLevel() {
+        return levelIndex >= LEVELS.length - 1;
+    }
+
+        private void showWin(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+        // Reuse a separate WinGame overlay similar to EndGame
+        WinGame.getInstance().winGameShow(
+            endGameScene, endGameRoot, primaryStage, score,
+            // onNextLevel:
+            () -> {
+                if (!isLastLevel()) {
+                    levelIndex++;
+                    gameRootRef.getChildren().clear();
+                    score = 0;
+                    won = false;
+                    initializeCells();
+                    setupScoreDisplay();
+                    startGame();
+                    updateScoreDisplay();
+                    primaryStage.setScene(gameSceneRef);
+                } else {
+                    // If already last level, return to main menu
+                    menuRoot.getChildren().clear();
+                    primaryStage.setScene(menuScene);
+                }
+            },
+            // onRestartFromStart:
+            () -> {
+                levelIndex = 0; // back to level 1
+                gameRootRef.getChildren().clear();
+                score = 0;
+                won = false;
+                initializeCells();
+                setupScoreDisplay();
+                startGame();
+                updateScoreDisplay();
+                primaryStage.setScene(gameSceneRef);
+            },
+            // onMenu:
+            () -> {
+                endGameRoot.getChildren().clear();
+                primaryStage.setScene(menuScene);
+            }
+        );
+    }
+
 }
+
