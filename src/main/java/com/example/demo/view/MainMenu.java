@@ -14,6 +14,7 @@ import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -43,7 +44,6 @@ public class MainMenu {
             Scene menuScene, Group root, Stage primaryStage,
             Runnable onNewGame, Runnable onLogin, Runnable onManual, Runnable onQuit
     ) {
-        // Stop any previous media if showMenu is called again
         stopBackgroundMedia();
 
         root.getChildren().clear();
@@ -52,11 +52,18 @@ public class MainMenu {
             menuScene.getRoot().setStyle("-fx-background-color: #0f0f14;");
         }
 
-        // --- Try video background first ---
+        // 1) Try video background
         boolean videoAdded = tryAddVideoBackground(menuScene, root,
-                "/com/example/demo/image/MainMenu.mp4"); // <-- put your video here
+                "/com/example/demo/image/MainMenu.mp4"); // <-- place your mp4 here
 
-        // --- Fallback: static image if video missing or failed ---
+        // 1.5) Dim overlay ABOVE video, BELOW UI for contrast
+        Rectangle dim = new Rectangle();
+        dim.widthProperty().bind(menuScene.widthProperty());
+        dim.heightProperty().bind(menuScene.heightProperty());
+        dim.setFill(Color.color(0, 0, 0, 0.35));
+        root.getChildren().add(dim);
+
+        // 2) Fallback image if video missing/failed
         if (!videoAdded) {
             URL imgUrl = getClass().getResource("/com/example/demo/image/Crack2048.jpg");
             if (imgUrl != null) {
@@ -65,11 +72,11 @@ public class MainMenu {
                 bgView.fitWidthProperty().bind(menuScene.widthProperty());
                 bgView.fitHeightProperty().bind(menuScene.heightProperty());
                 bgView.setPreserveRatio(false);
-                root.getChildren().add(bgView);
+                root.getChildren().add(0, bgView); // under dim
             }
         }
 
-        // --- Title (neon glow) ---
+        // 3) Title (neon glow)
         Font titleFont = loadRetroFont(72);
         Text title = new Text("Crack 2048");
         title.setFont(titleFont);
@@ -79,25 +86,30 @@ public class MainMenu {
         glow.setRadius(20);
         glow.setSpread(0.2);
         title.setEffect(glow);
-
-        // Center title
         root.getChildren().add(title);
-        title.layoutBoundsProperty().addListener((obs, o, n) -> {
-            double titleX = (menuScene.getWidth() - n.getWidth()) / 2.0;
-            title.setX(Math.max(20, titleX));
-            title.setY(150);
-        });
 
-        // --- Buttons (same style as before) ---
+        // Center title now + on resize
+        Runnable layoutTitle = () -> {
+            title.applyCss();
+            double titleX = Math.max(20, (menuScene.getWidth() - title.getLayoutBounds().getWidth()) / 2.0);
+            title.setX(titleX);
+            title.setY(150);
+        };
+        layoutTitle.run();
+        title.layoutBoundsProperty().addListener((obs, o, n) -> layoutTitle.run());
+        menuScene.widthProperty().addListener((o, a, b) -> layoutTitle.run());
+        menuScene.heightProperty().addListener((o, a, b) -> layoutTitle.run());
+
+        // 4) Buttons
         Font buttonFont = loadRetroFont(20);
         double buttonWidth = 300;
         double buttonHeight = 60;
         double spacing = 20;
 
-        String buttonBg = "#1a1f2b";
+        String buttonBg      = "#1a1f2b";
         String buttonBgHover = "#232a3a";
-        String buttonText = "#D6E3FF";
-        String accent = "#00E5FF";
+        String buttonText    = "#D6E3FF";
+        String accent        = "#00E5FF";
 
         Button newGameButton = makeButton("NEW GAME", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
         Button loginButton   = makeButton("LOGIN", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
@@ -106,7 +118,6 @@ public class MainMenu {
 
         root.getChildren().addAll(newGameButton, loginButton, manualButton, quitButton);
 
-        // Center buttons after scene has size
         Runnable layoutButtons = () -> {
             double centerX = (menuScene.getWidth() - buttonWidth) / 2.0;
             double startY  = 300;
@@ -115,15 +126,21 @@ public class MainMenu {
             manualButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
             quitButton.relocate(centerX, startY + 3 * (buttonHeight + spacing));
         };
-        // Initial layout + update on resize
         layoutButtons.run();
         menuScene.widthProperty().addListener((o, a, b) -> layoutButtons.run());
         menuScene.heightProperty().addListener((o, a, b) -> layoutButtons.run());
 
-        // Actions (stop video before leaving)
+        // Make sure UI is above dim/video
+        title.toFront();
+        newGameButton.toFront();
+        loginButton.toFront();
+        manualButton.toFront();
+        quitButton.toFront();
+
+        // Actions
         newGameButton.setOnAction(e -> { stopBackgroundMedia(); if (onNewGame != null) onNewGame.run(); });
         loginButton.setOnAction(e -> { stopBackgroundMedia(); if (onLogin != null) onLogin.run(); });
-        manualButton.setOnAction(e -> { /* keep video playing if manual is overlay; otherwise stop */ if (onManual != null) onManual.run(); });
+        manualButton.setOnAction(e -> { if (onManual != null) onManual.run(); }); // keep video if overlay
         quitButton.setOnAction(e -> { stopBackgroundMedia(); if (onQuit != null) onQuit.run(); });
     }
 
@@ -137,16 +154,16 @@ public class MainMenu {
             Media media = new Media(url.toExternalForm());
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(true);
-            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop
-            mediaPlayer.setMute(true); // background ambiance
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            mediaPlayer.setMute(true);
 
             MediaView mediaView = new MediaView(mediaPlayer);
+            mediaView.setMouseTransparent(true);            // never steal clicks
+            mediaView.setPreserveRatio(false);
             mediaView.fitWidthProperty().bind(scene.widthProperty());
             mediaView.fitHeightProperty().bind(scene.heightProperty());
-            mediaView.setPreserveRatio(false);
 
-            // Put behind everything else
-            root.getChildren().add(0, mediaView);
+            root.getChildren().add(0, mediaView); // bottom layer
             return true;
         } catch (MediaException ex) {
             System.err.println("[MainMenu] Failed to load/play video: " + ex);
