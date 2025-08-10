@@ -73,6 +73,11 @@ public class GameScene {
         this.menuScene = menuScene;
         this.menuRoot = menuRoot;
         this.root = gameRoot;
+
+        titleFont = loadRetroFont(48);
+        uiFont = loadRetroFont((20));
+
+        setupBackground(gameSceneRef, root);
         initializeCells();
         setupScoreDisplay();
         startGame();
@@ -570,9 +575,9 @@ public class GameScene {
     private void setupBackground(Scene scene, Group root) {
     // choose bg by current level
     String bgPath = switch (currentGridSize()) {
-        case 4  -> "/com/example/demo/image/level1_bg.jpg";   // put your file here
-        case 8  -> "/com/example/demo/image/level2_bg.jpg";   // put your file here
-        case 10 -> "/com/example/demo/image/level3_bg.jpg";   // put your file here
+        case 4  -> "/com/example/demo/image/level1_bg.jpg";   
+        case 8  -> "/com/example/demo/image/level2_bg.jpg";  
+        case 10 -> "/com/example/demo/image/level3_bg.jpg";   
         default -> "/com/example/demo/image/level1_bg.jpg";
     };
 
