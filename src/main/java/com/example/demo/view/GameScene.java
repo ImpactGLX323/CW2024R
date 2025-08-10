@@ -264,7 +264,14 @@ public class GameScene {
     menuText.setY(yBottom + (buttonHeight + spacing) + 50);
     root.getChildren().add(menuText);
 
-    // TODO: Add menuText.setOnMouseClicked(...) to handle main menu navigation
+    menuText.setOnMouseClicked(event -> {
+    // Optional: clear in-game UI layer so when you return it rebuilds fresh
+    contentLayer.getChildren().clear();
+        // Switch scenes
+        if (primaryStageRef != null) {
+            primaryStageRef.setScene(menuScene);
+        }
+    });
 
     // Quit Game Button (top)
     Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
