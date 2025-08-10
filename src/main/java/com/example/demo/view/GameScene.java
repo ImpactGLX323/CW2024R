@@ -1,5 +1,6 @@
 package com.example.demo.view;
 
+import java.io.InputStream;
 import java.util.Random;
 
 import com.example.demo.model.Cell;
@@ -8,6 +9,8 @@ import com.example.demo.utils.TextMaker;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -44,6 +47,10 @@ public class GameScene {
     private Group menuRoot;
     private Scene gameSceneRef;
     private Group gameRootRef;
+    private ImageView bgView;
+    private Font titleFont;
+    private Font uiFont;
+
 
     public static void setGridSize(int size) {
         gridSize = size;
@@ -544,5 +551,52 @@ public class GameScene {
         );
     }
 
+    private static Font loadRetroFont(double size) {
+        String[] candidates = {
+            "/fonts/Orbitron-VariableFont_wght.ttf",
+            "/fonts/VT323-Regular.ttf"
+        };
+        for (String path : candidates) {
+            try (InputStream is = GameScene.class.getResourceAsStream(path)) {
+                if (is != null) {
+                    Font f = Font.loadFont(is, size);
+                    if (f != null) return f;
+                }
+            } catch (Exception ignored) {}
+        }
+        return Font.font("Arial", size); // fallback
+    }
+
+    private void setupBackground(Scene scene, Group root) {
+    // choose bg by current level
+    String bgPath = switch (currentGridSize()) {
+        case 4  -> "/com/example/demo/image/level1_bg.jpg";   // put your file here
+        case 8  -> "/com/example/demo/image/level2_bg.jpg";   // put your file here
+        case 10 -> "/com/example/demo/image/level3_bg.jpg";   // put your file here
+        default -> "/com/example/demo/image/level1_bg.jpg";
+    };
+
+    Image img = null;
+    var url = getClass().getResource(bgPath);
+    if (url != null) {
+        img = new Image(url.toExternalForm());
+    } else {
+        System.err.println("[GameScene] Background not found: " + bgPath);
+    }
+
+    if (bgView == null) {
+        bgView = new ImageView();
+        // put background at the very bottom
+        root.getChildren().add(0, bgView);
+        // scale to scene
+        bgView.fitWidthProperty().bind(scene.widthProperty());
+        bgView.fitHeightProperty().bind(scene.heightProperty());
+        bgView.setPreserveRatio(false);
+    }
+
+    if (img != null) {
+        bgView.setImage(img);
+    }
+}
 }
 
