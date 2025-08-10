@@ -69,6 +69,16 @@ public class GameScene {
         initializeCells();
         setupScoreDisplay();
         startGame();
+
+        // --- TEST CODE: instantly win the game ---
+        cells[0][0].setTextClass(
+            textMaker.madeText(String.valueOf(currentTargetTile()),
+            cells[0][0].getX(),
+            cells[0][0].getY(),
+            root)
+        );
+        cells[0][0].setColorByNumber(currentTargetTile());
+    // ------------------------------------------
         setupKeyHandlers(gameScene, primaryStage, endGameScene, endGameRoot);
     }
 
