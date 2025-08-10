@@ -642,8 +642,8 @@ public class GameScene {
 
     private static Font loadRetroFont(double size) {
         String[] candidates = {
-            "/fonts/Orbitron-VariableFont_wght.ttf",
-            "/fonts/VT323-Regular.ttf"
+            "/com/example/demo/fonts/Orbitron-VariableFont_wght.ttf",
+            "/com/example/demo/fonts/VT323-Regular.ttf"
         };
         for (String path : candidates) {
             try (InputStream is = GameScene.class.getResourceAsStream(path)) {
