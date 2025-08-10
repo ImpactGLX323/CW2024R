@@ -3,6 +3,8 @@ package com.example.demo.view;
 import java.io.InputStream;
 import java.net.URL;
 
+import com.example.demo.model.Account;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -140,12 +142,15 @@ public class MainMenu {
         // Actions
         newGameButton.setOnAction(e -> { stopBackgroundMedia(); if (onNewGame != null) onNewGame.run(); });
         loginButton.setOnAction(e -> {
-            System.out.println("Login feature coming soon!");
-            // Optionally show a popup or alert
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Login");
+            // This is the dummy login for now
+            Account.loginAs("Guest"); 
+            System.out.println("Logged in as: " + Account.getCurrent().getUserName());
+
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION,
+                "Login system coming soon! Continue as Guest."
+            );
             alert.setHeaderText(null);
-            alert.setContentText("Login system will be available in a future update.");
             alert.showAndWait();
         });
         manualButton.setOnAction(e -> {
