@@ -5,6 +5,7 @@ import java.net.URL;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -130,7 +131,6 @@ public class MainMenu {
         menuScene.widthProperty().addListener((o, a, b) -> layoutButtons.run());
         menuScene.heightProperty().addListener((o, a, b) -> layoutButtons.run());
 
-        // Make sure UI is above dim/video
         title.toFront();
         newGameButton.toFront();
         loginButton.toFront();
@@ -139,8 +139,24 @@ public class MainMenu {
 
         // Actions
         newGameButton.setOnAction(e -> { stopBackgroundMedia(); if (onNewGame != null) onNewGame.run(); });
-        loginButton.setOnAction(e -> { stopBackgroundMedia(); if (onLogin != null) onLogin.run(); });
-        manualButton.setOnAction(e -> { if (onManual != null) onManual.run(); }); // keep video if overlay
+        loginButton.setOnAction(e -> {
+            System.out.println("Login feature coming soon!");
+            // Optionally show a popup or alert
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Login");
+            alert.setHeaderText(null);
+            alert.setContentText("Login system will be available in a future update.");
+            alert.showAndWait();
+        });
+        manualButton.setOnAction(e -> {
+            System.out.println("Manual feature coming soon!");
+            // Optionally show a popup or alert
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Manual");
+            alert.setHeaderText(null);
+            alert.setContentText("Game manual will be available in a future update.");
+            alert.showAndWait();
+        });
         quitButton.setOnAction(e -> { stopBackgroundMedia(); if (onQuit != null) onQuit.run(); });
     }
 
