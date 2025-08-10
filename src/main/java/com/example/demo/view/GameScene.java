@@ -51,6 +51,7 @@ public class GameScene {
     private Group menuRoot;
     private Scene gameSceneRef;
     private Group gameRootRef;
+    private Stage primaryStageRef;
     private Group contentLayer;
     private ImageView bgView;
     private Font titleFont;
@@ -112,6 +113,7 @@ public class GameScene {
         this.menuScene = menuScene;
         this.menuRoot = menuRoot;
         this.root = gameRoot;
+        this.primaryStageRef = primaryStage;
         
         if (contentLayer == null) {
             contentLayer = new Group();
@@ -184,8 +186,8 @@ public class GameScene {
     private void setupScoreDisplay() {
     // Title
     Text title = new Text("Crack 2048");
-    title.setFont(Font.font("Arial", 48));
-    title.setFill(Color.rgb(119, 110, 101));
+    title.setFont(titleFont);
+    title.setFill(Color.rgb(255, 253, 251));
     title.setX(320); // Centered horizontally
     title.setY(80);
     root.getChildren().add(title);
@@ -199,14 +201,14 @@ public class GameScene {
     root.getChildren().add(scoreBox);
 
     Text scoreLabel = new Text("SCORE");
-    scoreLabel.setFont(Font.font("Arial", 20));
+    scoreLabel.setFont(uiFont);
     scoreLabel.setFill(Color.rgb(238, 228, 218));
     scoreLabel.setX(720);
     scoreLabel.setY(65);
     root.getChildren().add(scoreLabel);
 
     scoreText = new Text("0");
-    scoreText.setFont(Font.font("Arial", 24));
+    scoreText.setFont(loadRetroFont(24));
     scoreText.setFill(Color.rgb(255, 255, 255));
     scoreText.setX(735);
     scoreText.setY(95);
@@ -229,7 +231,7 @@ public class GameScene {
     root.getChildren().add(restartBox);
 
     Text restartText = new Text("RESTART");
-    restartText.setFont(Font.font("Arial", 20));
+    restartText.setFont(uiFont);
     restartText.setFill(Color.rgb(255, 255, 255));
     restartText.setX(startX + 20);
     restartText.setY(yBottom + 2 * (buttonHeight + spacing) + 50);
@@ -238,7 +240,7 @@ public class GameScene {
     restartText.setOnMouseClicked(event -> {
         contentLayer.getChildren().clear();
         won = false; // reset win state
-        setupBackground(gameSceneRef, root);
+        setupBackground(gameSceneRef, gameRootRef);
         initializeCells();
         setupScoreDisplay();
         startGame();
@@ -256,7 +258,7 @@ public class GameScene {
     root.getChildren().add(menuBox);
 
     Text menuText = new Text("MAIN MENU");
-    menuText.setFont(Font.font("Arial", 20));
+    menuText.setFont(uiFont);
     menuText.setFill(Color.rgb(255, 255, 255));
     menuText.setX(startX + 10);
     menuText.setY(yBottom + (buttonHeight + spacing) + 50);
@@ -274,7 +276,7 @@ public class GameScene {
     root.getChildren().add(quitBox);
 
     Text quitText = new Text("QUIT GAME");
-    quitText.setFont(Font.font("Arial", 20));
+    quitText.setFont(uiFont);
     quitText.setFill(Color.rgb(255, 255, 255));
     quitText.setX(startX + 10);
     quitText.setY(yBottom + 50);
@@ -590,6 +592,7 @@ public class GameScene {
             () -> {
                 levelIndex = 0; // back to level 1
                 contentLayer.getChildren().clear();
+                setupBackground(gameSceneRef, gameRootRef);
                 score = 0;
                 won = false;
                 initializeCells();
@@ -635,9 +638,9 @@ public class GameScene {
             bgView.setPreserveRatio(false);
             bgView.fitWidthProperty().bind(scene.widthProperty());
             bgView.fitHeightProperty().bind(scene.heightProperty());
-            baseRoot.getChildren().add(0, bgView);   // bottom-most in the base layer
+            baseRoot.getChildren().add(0, bgView); // bottom-most
         } else if (bgView.getParent() != baseRoot) {
-            // Move bgView from previous parent to the new base root
+            // move from old parent (if any)
             ((Group) bgView.getParent()).getChildren().remove(bgView);
             baseRoot.getChildren().add(0, bgView);
         }
