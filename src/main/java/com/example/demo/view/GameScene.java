@@ -7,6 +7,9 @@ import com.example.demo.model.Cell;
 import com.example.demo.utils.TextMaker;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -17,6 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
 public class GameScene {
@@ -47,10 +51,45 @@ public class GameScene {
     private Group menuRoot;
     private Scene gameSceneRef;
     private Group gameRootRef;
+    private Group contentLayer;
     private ImageView bgView;
     private Font titleFont;
     private Font uiFont;
 
+    // Base size your UI was designed for
+    private static final double BASE_W = WIDTH;  // 900
+    private static final double BASE_H = HEIGHT; // 700
+
+    private void setupResponsiveLayout(Scene scene) {
+        if (contentLayer == null) return;
+
+        // Scale factor that preserves aspect ratio
+        DoubleBinding scale = Bindings.createDoubleBinding(
+            () -> Math.min(scene.getWidth() / BASE_W, scene.getHeight() / BASE_H),
+            scene.widthProperty(), scene.heightProperty()
+        );
+
+        // Apply scale via a Scale transform (cleaner than binding scaleX/scaleY directly)
+        Scale s = new Scale();
+        s.xProperty().bind(scale);
+        s.yProperty().bind(scale);
+        contentLayer.getTransforms().setAll(s);
+
+        // Center the scaled content
+        ChangeListener<Object> centerer = (obs, oldV, newV) -> {
+            double k = scale.get();
+            double contentW = BASE_W * k;
+            double contentH = BASE_H * k;
+            contentLayer.setLayoutX((scene.getWidth() - contentW) / 2.0);
+            contentLayer.setLayoutY((scene.getHeight() - contentH) / 2.0);
+        };
+
+        // Recenter on resize
+        scene.widthProperty().addListener(centerer);
+        scene.heightProperty().addListener(centerer);
+        // Initial center
+        centerer.changed(null, null, null);
+    }
 
     public static void setGridSize(int size) {
         gridSize = size;
@@ -73,11 +112,20 @@ public class GameScene {
         this.menuScene = menuScene;
         this.menuRoot = menuRoot;
         this.root = gameRoot;
+        
+        if (contentLayer == null) {
+            contentLayer = new Group();
+            gameRoot.getChildren().add(contentLayer); // add above bg
+        }
+
+        // draw everything into contentLayer now:
+        this.root = contentLayer;
 
         titleFont = loadRetroFont(48);
         uiFont = loadRetroFont((20));
 
-        setupBackground(gameSceneRef, root);
+        setupBackground(gameSceneRef, gameRootRef);
+        setupResponsiveLayout(gameSceneRef);
         initializeCells();
         setupScoreDisplay();
         startGame();
@@ -188,7 +236,7 @@ public class GameScene {
     root.getChildren().add(restartText);
 
     restartText.setOnMouseClicked(event -> {
-        root.getChildren().clear();
+        contentLayer.getChildren().clear();
         won = false; // reset win state
         setupBackground(gameSceneRef, root);
         initializeCells();
@@ -524,7 +572,7 @@ public class GameScene {
             () -> {
                 if (!isLastLevel()) {
                     levelIndex++;
-                    gameRootRef.getChildren().clear();
+                    contentLayer.getChildren().clear();
                     setupBackground(gameSceneRef, gameRootRef); 
                     score = 0;
                     won = false;
@@ -534,7 +582,6 @@ public class GameScene {
                     updateScoreDisplay();
                     primaryStage.setScene(gameSceneRef);
                 } else {
-                    // If already last level, return to main menu
                     menuRoot.getChildren().clear();
                     primaryStage.setScene(menuScene);
                 }
@@ -542,7 +589,7 @@ public class GameScene {
             // onRestartFromStart:
             () -> {
                 levelIndex = 0; // back to level 1
-                gameRootRef.getChildren().clear();
+                contentLayer.getChildren().clear();
                 score = 0;
                 won = false;
                 initializeCells();
@@ -575,29 +622,26 @@ public class GameScene {
         return Font.font("Arial", size); // fallback
     }
 
-    private void setupBackground(Scene scene, Group root) {
-
+    private void setupBackground(Scene scene, Group baseRoot) {
         final String bgPath = switch (currentGridSize()) {
-                case 4  -> "/com/example/demo/image/level1_bg.jpg";   
-                case 8  -> "/com/example/demo/image/level2_bg.jpg";  
-                case 10 -> "/com/example/demo/image/level3_bg.jpg";   
-                default -> "/com/example/demo/image/level1_bg.jpg";
-            };
+            case 4  -> "/com/example/demo/image/level1_bg.jpg";
+            case 8  -> "/com/example/demo/image/level2_bg.jpg";
+            case 10 -> "/com/example/demo/image/level3_bg.jpg";
+            default -> "/com/example/demo/image/level1_bg.jpg";
+        };
 
-            if (bgView == null) {
+        if (bgView == null) {
             bgView = new ImageView();
             bgView.setPreserveRatio(false);
-            // fill the scene
             bgView.fitWidthProperty().bind(scene.widthProperty());
             bgView.fitHeightProperty().bind(scene.heightProperty());
+            baseRoot.getChildren().add(0, bgView);   // bottom-most in the base layer
+        } else if (bgView.getParent() != baseRoot) {
+            // Move bgView from previous parent to the new base root
+            ((Group) bgView.getParent()).getChildren().remove(bgView);
+            baseRoot.getChildren().add(0, bgView);
         }
 
-        // Ensure bgView is attached at the bottom even after clear()
-        if (bgView.getParent() != root) {
-            root.getChildren().add(0, bgView);
-        }
-
-        // Load the image (if missing, leave the previous image so you notice the log)
         var url = getClass().getResource(bgPath);
         if (url == null) {
             System.err.println("[GameScene] Background not found: " + bgPath);
