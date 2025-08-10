@@ -189,6 +189,8 @@ public class GameScene {
 
     restartText.setOnMouseClicked(event -> {
         root.getChildren().clear();
+        won = false; // reset win state
+        setupBackground(gameSceneRef, root);
         initializeCells();
         setupScoreDisplay();
         startGame();
@@ -523,6 +525,7 @@ public class GameScene {
                 if (!isLastLevel()) {
                     levelIndex++;
                     gameRootRef.getChildren().clear();
+                    setupBackground(gameSceneRef, gameRootRef); 
                     score = 0;
                     won = false;
                     initializeCells();
@@ -573,35 +576,36 @@ public class GameScene {
     }
 
     private void setupBackground(Scene scene, Group root) {
-    // choose bg by current level
-    String bgPath = switch (currentGridSize()) {
-        case 4  -> "/com/example/demo/image/level1_bg.jpg";   
-        case 8  -> "/com/example/demo/image/level2_bg.jpg";  
-        case 10 -> "/com/example/demo/image/level3_bg.jpg";   
-        default -> "/com/example/demo/image/level1_bg.jpg";
-    };
 
-    Image img = null;
-    var url = getClass().getResource(bgPath);
-    if (url != null) {
-        img = new Image(url.toExternalForm());
-    } else {
-        System.err.println("[GameScene] Background not found: " + bgPath);
-    }
+        final String bgPath = switch (currentGridSize()) {
+                case 4  -> "/com/example/demo/image/level1_bg.jpg";   
+                case 8  -> "/com/example/demo/image/level2_bg.jpg";  
+                case 10 -> "/com/example/demo/image/level3_bg.jpg";   
+                default -> "/com/example/demo/image/level1_bg.jpg";
+            };
 
-    if (bgView == null) {
-        bgView = new ImageView();
-        // put background at the very bottom
-        root.getChildren().add(0, bgView);
-        // scale to scene
-        bgView.fitWidthProperty().bind(scene.widthProperty());
-        bgView.fitHeightProperty().bind(scene.heightProperty());
-        bgView.setPreserveRatio(false);
-    }
+            if (bgView == null) {
+            bgView = new ImageView();
+            bgView.setPreserveRatio(false);
+            // fill the scene
+            bgView.fitWidthProperty().bind(scene.widthProperty());
+            bgView.fitHeightProperty().bind(scene.heightProperty());
+        }
 
-    if (img != null) {
-        bgView.setImage(img);
+        // Ensure bgView is attached at the bottom even after clear()
+        if (bgView.getParent() != root) {
+            root.getChildren().add(0, bgView);
+        }
+
+        // Load the image (if missing, leave the previous image so you notice the log)
+        var url = getClass().getResource(bgPath);
+        if (url == null) {
+            System.err.println("[GameScene] Background not found: " + bgPath);
+            return;
+        }
+        bgView.setImage(new Image(url.toExternalForm()));
+        System.out.println("[GameScene] Background set: " + bgPath);
     }
 }
-}
+
 
