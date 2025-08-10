@@ -1,6 +1,7 @@
 package com.example.demo.view;
 
 import java.io.InputStream;
+import java.net.URL;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -8,6 +9,10 @@ import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaException;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -15,8 +20,10 @@ import javafx.stage.Stage;
 
 public class MainMenu {
 
+    // Keep a reference so we can stop/dispose when leaving the menu
+    private MediaPlayer mediaPlayer;
+
     private static Font loadRetroFont(double size) {
-        // Try Orbitron first, then VT323, else fallback
         String[] candidates = {
             "/fonts/Orbitron-VariableFont_wght.ttf",
             "/fonts/VT323-Regular.ttf"
@@ -29,83 +36,137 @@ public class MainMenu {
                 }
             } catch (Exception ignored) {}
         }
-        return Font.font("Arial", size); // fallbacks to Arial 
+        return Font.font("Arial", size);
     }
 
     public void showMenu(
             Scene menuScene, Group root, Stage primaryStage,
             Runnable onNewGame, Runnable onLogin, Runnable onManual, Runnable onQuit
     ) {
+        // Stop any previous media if showMenu is called again
+        stopBackgroundMedia();
+
         root.getChildren().clear();
-        // --- Set background image ---
-        Image bgImage = new Image(getClass().getResource("/com/example/demo/image/Crack2048.jpg").toExternalForm());
-        ImageView bgView = new ImageView(bgImage);
-        bgView.setFitWidth(menuScene.getWidth());
-        bgView.setFitHeight(menuScene.getHeight());
-        bgView.setPreserveRatio(false);
-        root.getChildren().add(bgView);
-        // Dark, minimal background
-        root.setStyle("-fx-background-color: #0f0f14;"); // deep charcoal
-        // If the Group is not the scene root, also set on scene root:
+        root.setStyle("-fx-background-color: #0f0f14;");
         if (menuScene.getRoot() != root) {
             menuScene.getRoot().setStyle("-fx-background-color: #0f0f14;");
         }
 
-        // Load fonts
-        Font titleFont = loadRetroFont(72);
-        Font buttonFont = loadRetroFont(20);
+        // --- Try video background first ---
+        boolean videoAdded = tryAddVideoBackground(menuScene, root,
+                "/com/example/demo/video/menu.mp4"); // <-- put your video here
 
-        // Title (top center)
+        // --- Fallback: static image if video missing or failed ---
+        if (!videoAdded) {
+            URL imgUrl = getClass().getResource("/com/example/demo/image/Crack2048.jpg");
+            if (imgUrl != null) {
+                Image bgImage = new Image(imgUrl.toExternalForm());
+                ImageView bgView = new ImageView(bgImage);
+                bgView.fitWidthProperty().bind(menuScene.widthProperty());
+                bgView.fitHeightProperty().bind(menuScene.heightProperty());
+                bgView.setPreserveRatio(false);
+                root.getChildren().add(bgView);
+            }
+        }
+
+        // --- Title (neon glow) ---
+        Font titleFont = loadRetroFont(72);
         Text title = new Text("Crack 2048");
         title.setFont(titleFont);
-        title.setFill(Color.web("#E2E8F0")); // soft light
-        // subtle neon-ish glow
+        title.setFill(Color.web("#E2E8F0"));
         DropShadow glow = new DropShadow();
-        glow.setColor(Color.web("#00E5FF", 0.6)); // cyan glow
+        glow.setColor(Color.web("#00E5FF", 0.6));
         glow.setRadius(20);
         glow.setSpread(0.2);
         title.setEffect(glow);
 
-        // We need layout bounds to center; force CSS/apply once text is measured
-        title.applyCss();
-        double titleX = (menuScene.getWidth() - title.getLayoutBounds().getWidth()) / 2.0;
-        title.setX(Math.max(20, titleX));
-        title.setY(150);
+        // Center title
         root.getChildren().add(title);
+        title.layoutBoundsProperty().addListener((obs, o, n) -> {
+            double titleX = (menuScene.getWidth() - n.getWidth()) / 2.0;
+            title.setX(Math.max(20, titleX));
+            title.setY(150);
+        });
 
-        // Button configuration
+        // --- Buttons (same style as before) ---
+        Font buttonFont = loadRetroFont(20);
         double buttonWidth = 300;
         double buttonHeight = 60;
         double spacing = 20;
-        double centerX = (menuScene.getWidth() - buttonWidth) / 2.0;
-        double startY = 300;
 
-        // Colors
-        String buttonBg = "#1a1f2b";  // dark card
+        String buttonBg = "#1a1f2b";
         String buttonBgHover = "#232a3a";
-        String buttonText = "#D6E3FF"; // soft bluish white
-        String accent = "#00E5FF";    // neon cyan border
+        String buttonText = "#D6E3FF";
+        String accent = "#00E5FF";
 
-        // Factory
         Button newGameButton = makeButton("NEW GAME", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
-        newGameButton.relocate(centerX, startY);
-
-        Button loginButton = makeButton("LOGIN", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
-        loginButton.relocate(centerX, startY + buttonHeight + spacing);
-
-        Button manualButton = makeButton("GAME MANUAL", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
-        manualButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
-
-        Button quitButton = makeButton("QUIT GAME", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, "#FF6B6B", buttonBgHover);
-        quitButton.relocate(centerX, startY + 3 * (buttonHeight + spacing));
+        Button loginButton   = makeButton("LOGIN", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
+        Button manualButton  = makeButton("GAME MANUAL", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, accent, buttonBgHover);
+        Button quitButton    = makeButton("QUIT GAME", buttonWidth, buttonHeight, buttonFont, buttonBg, buttonText, "#FF6B6B", buttonBgHover);
 
         root.getChildren().addAll(newGameButton, loginButton, manualButton, quitButton);
 
-        // Actions
-        newGameButton.setOnAction(e -> { if (onNewGame != null) onNewGame.run(); });
-        loginButton.setOnAction(e -> { if (onLogin != null) onLogin.run(); });
-        manualButton.setOnAction(e -> { if (onManual != null) onManual.run(); });
-        quitButton.setOnAction(e -> { if (onQuit != null) onQuit.run(); });
+        // Center buttons after scene has size
+        Runnable layoutButtons = () -> {
+            double centerX = (menuScene.getWidth() - buttonWidth) / 2.0;
+            double startY  = 300;
+            newGameButton.relocate(centerX, startY);
+            loginButton.relocate(centerX, startY + buttonHeight + spacing);
+            manualButton.relocate(centerX, startY + 2 * (buttonHeight + spacing));
+            quitButton.relocate(centerX, startY + 3 * (buttonHeight + spacing));
+        };
+        // Initial layout + update on resize
+        layoutButtons.run();
+        menuScene.widthProperty().addListener((o, a, b) -> layoutButtons.run());
+        menuScene.heightProperty().addListener((o, a, b) -> layoutButtons.run());
+
+        // Actions (stop video before leaving)
+        newGameButton.setOnAction(e -> { stopBackgroundMedia(); if (onNewGame != null) onNewGame.run(); });
+        loginButton.setOnAction(e -> { stopBackgroundMedia(); if (onLogin != null) onLogin.run(); });
+        manualButton.setOnAction(e -> { /* keep video playing if manual is overlay; otherwise stop */ if (onManual != null) onManual.run(); });
+        quitButton.setOnAction(e -> { stopBackgroundMedia(); if (onQuit != null) onQuit.run(); });
+    }
+
+    private boolean tryAddVideoBackground(Scene scene, Group root, String resourcePath) {
+        try {
+            URL url = getClass().getResource(resourcePath);
+            if (url == null) {
+                System.err.println("[MainMenu] Video not found at " + resourcePath);
+                return false;
+            }
+            Media media = new Media(url.toExternalForm());
+            mediaPlayer = new MediaPlayer(media);
+            mediaPlayer.setAutoPlay(true);
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop
+            mediaPlayer.setMute(true); // background ambiance
+
+            MediaView mediaView = new MediaView(mediaPlayer);
+            mediaView.fitWidthProperty().bind(scene.widthProperty());
+            mediaView.fitHeightProperty().bind(scene.heightProperty());
+            mediaView.setPreserveRatio(false);
+
+            // Put behind everything else
+            root.getChildren().add(0, mediaView);
+            return true;
+        } catch (MediaException ex) {
+            System.err.println("[MainMenu] Failed to load/play video: " + ex);
+            return false;
+        } catch (Throwable t) {
+            System.err.println("[MainMenu] Unexpected error loading video: " + t);
+            return false;
+        }
+    }
+
+    private void stopBackgroundMedia() {
+        try {
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            }
+        } catch (Throwable ignored) {
+        } finally {
+            mediaPlayer = null;
+        }
     }
 
     private Button makeButton(String text,
