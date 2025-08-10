@@ -265,10 +265,34 @@ public class GameScene {
     root.getChildren().add(menuText);
 
     menuText.setOnMouseClicked(event -> {
-    // Optional: clear in-game UI layer so when you return it rebuilds fresh
-    contentLayer.getChildren().clear();
-        // Switch scenes
+        contentLayer.getChildren().clear(); // optional tidy
         if (primaryStageRef != null) {
+            // Rebuild the menu UI (background/video, title, buttons)
+            MainMenu mm = new MainMenu();
+            mm.showMenu(
+                menuScene,
+                menuRoot,
+                primaryStageRef,
+                // onNewGame:
+                () -> {
+                    // Start a fresh game when clicking NEW GAME in the menu
+                    contentLayer.getChildren().clear();
+                    setupBackground(gameSceneRef, gameRootRef);
+                    score = 0;
+                    won = false;
+                    initializeCells();
+                    setupScoreDisplay();
+                    startGame();
+                    updateScoreDisplay();
+                    primaryStageRef.setScene(gameSceneRef);
+                },
+                // onLogin:
+                () -> { /* TODO: show login overlay, or no-op */ },
+                // onManual:
+                () -> { /* TODO: show manual overlay, or no-op */ },
+                // onQuit:
+                () -> Platform.exit()
+            );
             primaryStageRef.setScene(menuScene);
         }
     });
