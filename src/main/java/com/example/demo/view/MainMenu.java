@@ -54,7 +54,7 @@ public class MainMenu {
 
         // --- Try video background first ---
         boolean videoAdded = tryAddVideoBackground(menuScene, root,
-                "/com/example/demo/video/menu.mp4"); // <-- put your video here
+                "/com/example/demo/image/MainMenu.mp4"); // <-- put your video here
 
         // --- Fallback: static image if video missing or failed ---
         if (!videoAdded) {
