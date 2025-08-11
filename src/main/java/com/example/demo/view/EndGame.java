@@ -1,3 +1,15 @@
+/**
+ * Builds the Game Over screen into the given root.
+ *
+ * @param endGameScene scene to render into
+ * @param root root Group to populate
+ * @param primaryStage main window (used to switch scenes)
+ * @param score final score to display
+ * @param onRestart callback when user chooses "RESTART" (may be {@code null})
+ * @param onMenu callback when user chooses "MAIN MENU" (may be {@code null})
+ * @param onQuit callback when user chooses "QUIT" (may be {@code null})
+ */
+
 package com.example.demo.view;
 
 import java.io.InputStream;
