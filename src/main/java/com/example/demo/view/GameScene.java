@@ -105,42 +105,52 @@ public class GameScene {
         return (HEIGHT - ((gridSize + 1) * DISTANCE_BETWEEN_CELLS)) / (double) gridSize;
     }
 
+  // 5-arg overload: only delegates to the 7-arg version.
     public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
-                          Scene endGameScene, Group endGameRoot,
-                          Scene menuScene, Group menuRoot) {
+                            Scene endGameScene, Group endGameRoot) {
+        initializeGame(gameScene, gameRoot, primaryStage,
+                    endGameScene, endGameRoot,
+                    null, null); // no main menu passed
+    }
+
+    //  7-arg full method: real implementation (NO delegation here!)
+    public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
+                            Scene endGameScene, Group endGameRoot,
+                            Scene menuScene, Group menuRoot) {
         this.gameSceneRef = gameScene;
         this.gameRootRef = gameRoot;
-        this.menuScene = menuScene;
-        this.menuRoot = menuRoot;
+        this.menuScene = menuScene;          
+        this.menuRoot  = menuRoot;           
         this.root = gameRoot;
         this.primaryStageRef = primaryStage;
-        
+
+        // content layer (for responsive scaling etc.)
         if (contentLayer == null) {
             contentLayer = new Group();
-            gameRoot.getChildren().add(contentLayer); // add above bg
+            gameRoot.getChildren().add(contentLayer);
         }
-
-        // draw everything into contentLayer now:
         this.root = contentLayer;
 
         titleFont = loadRetroFont(48);
-        uiFont = loadRetroFont((20));
+        uiFont    = loadRetroFont(20);
 
-        setupBackground(gameSceneRef, gameRootRef);
+        setupBackground(gameSceneRef, gameRootRef);  // keeps bgView on gameRoot
         setupResponsiveLayout(gameSceneRef);
+
         initializeCells();
         setupScoreDisplay();
         startGame();
 
-        // --- TEST CODE: instantly win the game ---
+        // --- TEST HOOK: seed winning tile (remove in production) ---
         cells[0][0].setTextClass(
             textMaker.madeText(String.valueOf(currentTargetTile()),
-            cells[0][0].getX(),
-            cells[0][0].getY(),
-            root)
+                cells[0][0].getX(),
+                cells[0][0].getY(),
+                root)
         );
         cells[0][0].setColorByNumber(currentTargetTile());
-    // ------------------------------------------
+        // -----------------------------------------------------------
+
         setupKeyHandlers(gameScene, primaryStage, endGameScene, endGameRoot);
     }
 
@@ -184,139 +194,147 @@ public class GameScene {
     }
 
     private void setupScoreDisplay() {
-    // Title
-    Text title = new Text("Crack 2048");
-    title.setFont(titleFont);
-    title.setFill(Color.rgb(255, 253, 251));
-    title.setX(320); // Centered horizontally
-    title.setY(80);
-    root.getChildren().add(title);
-    // Score Box
-    Rectangle scoreBox = new Rectangle(130, 80);
-    scoreBox.setArcWidth(15);
-    scoreBox.setArcHeight(15);
-    scoreBox.setFill(Color.rgb(119, 110, 101));
-    scoreBox.setX(700);
-    scoreBox.setY(40);
-    root.getChildren().add(scoreBox);
+        // Title
+        Text title = new Text("Crack 2048");
+        title.setFont(titleFont != null ? titleFont : loadRetroFont(48));
+        title.setFill(Color.rgb(255, 253, 251));
+        title.applyCss();
+        double titleX = (BASE_W - title.getLayoutBounds().getWidth()) / 2.0;
+        title.setX(Math.max(20, titleX));
+        title.setY(80);
+        root.getChildren().add(title);
 
-    Text scoreLabel = new Text("SCORE");
-    scoreLabel.setFont(uiFont);
-    scoreLabel.setFill(Color.rgb(238, 228, 218));
-    scoreLabel.setX(720);
-    scoreLabel.setY(65);
-    root.getChildren().add(scoreLabel);
+        // SCORE
+        double boxW = 130, boxH = 80;
+        double boxX = BASE_W - boxW - 70;  
+        double boxY = 40;
 
-    scoreText = new Text("0");
-    scoreText.setFont(loadRetroFont(24));
-    scoreText.setFill(Color.rgb(255, 255, 255));
-    scoreText.setX(735);
-    scoreText.setY(95);
-    root.getChildren().add(scoreText);
+        Rectangle scoreBox = new Rectangle(boxW, boxH);
+        scoreBox.setArcWidth(15);
+        scoreBox.setArcHeight(15);
+        scoreBox.setFill(Color.rgb(119, 110, 101));
+        scoreBox.setX(boxX);
+        scoreBox.setY(boxY);
+        root.getChildren().add(scoreBox);
 
-    // --- Bottom Right Vertical Buttons ---
-    double buttonWidth = 130;
-    double buttonHeight = 80;
-    double spacing = 20;
-    double startX = WIDTH - buttonWidth - 30; // 30px margin from right
-    double yBottom = HEIGHT - (buttonHeight * 3 + spacing * 2) - 30; // Stack 3 buttons upward from bottom
+        Text scoreLabel = new Text("SCORE");
+        scoreLabel.setFont(uiFont != null ? uiFont : loadRetroFont(20));
+        scoreLabel.setFill(Color.rgb(238, 228, 218));
+        scoreLabel.setX(boxX + 20);
+        scoreLabel.setY(boxY + 25);
+        root.getChildren().add(scoreLabel);
 
-    // Restart Button (bottom)
-    Rectangle restartBox = new Rectangle(buttonWidth, buttonHeight);
-    restartBox.setArcWidth(15);
-    restartBox.setArcHeight(15);
-    restartBox.setFill(Color.rgb(96, 96, 96));
-    restartBox.setX(startX);
-    restartBox.setY(yBottom + 2 * (buttonHeight + spacing));
-    root.getChildren().add(restartBox);
+        scoreText = new Text("0");
+        scoreText.setFont(loadRetroFont(24));
+        scoreText.setFill(Color.WHITE);
+        scoreText.setX(boxX + 35);
+        scoreText.setY(boxY + 55);
+        root.getChildren().add(scoreText);
 
-    Text restartText = new Text("RESTART");
-    restartText.setFont(uiFont);
-    restartText.setFill(Color.rgb(255, 255, 255));
-    restartText.setX(startX + 20);
-    restartText.setY(yBottom + 2 * (buttonHeight + spacing) + 50);
-    root.getChildren().add(restartText);
+        //  Right-side vertical buttons 
+        double buttonWidth = 130;
+        double buttonHeight = 80;
+        double spacing = 20;
+        double startX = BASE_W - buttonWidth - 30;                // right margin
+        double yBottom = BASE_H - (buttonHeight * 3 + spacing * 2) - 30;
 
-    restartText.setOnMouseClicked(event -> {
-        contentLayer.getChildren().clear();
-        won = false; // reset win state
-        setupBackground(gameSceneRef, gameRootRef);
-        initializeCells();
-        setupScoreDisplay();
-        startGame();
-        score = 0;
-        updateScoreDisplay();
-    });
+        // Restart
+        Rectangle restartBox = new Rectangle(buttonWidth, buttonHeight);
+        restartBox.setArcWidth(15);
+        restartBox.setArcHeight(15);
+        restartBox.setFill(Color.rgb(96, 96, 96));
+        restartBox.setX(startX);
+        restartBox.setY(yBottom + 2 * (buttonHeight + spacing));
+        root.getChildren().add(restartBox);
 
-    // Main Menu Button (middle)
-    Rectangle menuBox = new Rectangle(buttonWidth, buttonHeight);
-    menuBox.setArcWidth(15);
-    menuBox.setArcHeight(15);
-    menuBox.setFill(Color.rgb(96, 96, 96));
-    menuBox.setX(startX);
-    menuBox.setY(yBottom + (buttonHeight + spacing));
-    root.getChildren().add(menuBox);
+        Text restartText = new Text("RESTART");
+        restartText.setFont(uiFont != null ? uiFont : loadRetroFont(20));
+        restartText.setFill(Color.WHITE);
+        restartText.setX(startX + 20);
+        restartText.setY(yBottom + 2 * (buttonHeight + spacing) + 50);
+        root.getChildren().add(restartText);
 
-    Text menuText = new Text("MAIN MENU");
-    menuText.setFont(uiFont);
-    menuText.setFill(Color.rgb(255, 255, 255));
-    menuText.setX(startX + 10);
-    menuText.setY(yBottom + (buttonHeight + spacing) + 50);
-    root.getChildren().add(menuText);
+        restartText.setOnMouseClicked(event -> {
+            contentLayer.getChildren().clear();
+            won = false;
+            setupBackground(gameSceneRef, gameRootRef);
+            initializeCells();
+            setupScoreDisplay();
+            startGame();
+            score = 0;
+            updateScoreDisplay();
+        });
 
-    menuText.setOnMouseClicked(event -> {
-        contentLayer.getChildren().clear(); // optional tidy
-        if (primaryStageRef != null) {
-            // Rebuild the menu UI (background/video, title, buttons)
-            MainMenu mm = new MainMenu();
-            mm.showMenu(
-                menuScene,
-                menuRoot,
-                primaryStageRef,
-                // onNewGame:
-                () -> {
-                    // Start a fresh game when clicking NEW GAME in the menu
-                    contentLayer.getChildren().clear();
-                    setupBackground(gameSceneRef, gameRootRef);
-                    score = 0;
-                    won = false;
-                    initializeCells();
-                    setupScoreDisplay();
-                    startGame();
-                    updateScoreDisplay();
-                    primaryStageRef.setScene(gameSceneRef);
-                },
-                // onLogin:
-                () -> { /* TODO: show login overlay, or no-op */ },
-                // onManual:
-                () -> { /* TODO: show manual overlay, or no-op */ },
-                // onQuit:
-                () -> Platform.exit()
-            );
-            primaryStageRef.setScene(menuScene);
-        }
-    });
+        // Main Menu
+        Rectangle menuBox = new Rectangle(buttonWidth, buttonHeight);
+        menuBox.setArcWidth(15);
+        menuBox.setArcHeight(15);
+        menuBox.setFill(Color.rgb(96, 96, 96));
+        menuBox.setX(startX);
+        menuBox.setY(yBottom + (buttonHeight + spacing));
+        root.getChildren().add(menuBox);
 
-    // Quit Game Button (top)
-    Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
-    quitBox.setArcWidth(15);
-    quitBox.setArcHeight(15);
-    quitBox.setFill(Color.rgb(96, 96, 96));
-    quitBox.setX(startX);
-    quitBox.setY(yBottom);
-    root.getChildren().add(quitBox);
+        Text menuText = new Text("MAIN MENU");
+        menuText.setFont(uiFont != null ? uiFont : loadRetroFont(20));
+        menuText.setFill(Color.WHITE);
+        menuText.setX(startX + 10);
+        menuText.setY(yBottom + (buttonHeight + spacing) + 50);
+        root.getChildren().add(menuText);
 
-    Text quitText = new Text("QUIT GAME");
-    quitText.setFont(uiFont);
-    quitText.setFill(Color.rgb(255, 255, 255));
-    quitText.setX(startX + 10);
-    quitText.setY(yBottom + 50);
-    root.getChildren().add(quitText);
+        menuText.setOnMouseClicked(event -> {
+            contentLayer.getChildren().clear();
 
-    quitText.setOnMouseClicked(event -> {
-        Platform.exit();
-    });
-}
+            // Fallbacks so tests or callers without a menu still work
+            if (menuRoot == null) menuRoot = new Group();
+            if (menuScene == null) menuScene = new Scene(menuRoot, BASE_W, BASE_H);
+
+            if (primaryStageRef != null) {
+                MainMenu mm = new MainMenu();
+                mm.showMenu(
+                    menuScene,
+                    menuRoot,
+                    primaryStageRef,
+                    // onNewGame:
+                    () -> {
+                        contentLayer.getChildren().clear();
+                        setupBackground(gameSceneRef, gameRootRef);
+                        score = 0;
+                        won = false;
+                        initializeCells();
+                        setupScoreDisplay();
+                        startGame();
+                        updateScoreDisplay();
+                        primaryStageRef.setScene(gameSceneRef);
+                    },
+                    // onLogin:
+                    () -> { /* TODO: login overlay later */ },
+                    // onManual:
+                    () -> { /* TODO: manual overlay later */ },
+                    // onQuit:
+                    Platform::exit
+                );
+                primaryStageRef.setScene(menuScene);
+            }
+        });
+
+        // Quit
+        Rectangle quitBox = new Rectangle(buttonWidth, buttonHeight);
+        quitBox.setArcWidth(15);
+        quitBox.setArcHeight(15);
+        quitBox.setFill(Color.rgb(96, 96, 96));
+        quitBox.setX(startX);
+        quitBox.setY(yBottom);
+        root.getChildren().add(quitBox);
+
+        Text quitText = new Text("QUIT GAME");
+        quitText.setFont(uiFont != null ? uiFont : loadRetroFont(20));
+        quitText.setFill(Color.WHITE);
+        quitText.setX(startX + 10);
+        quitText.setY(yBottom + 50);
+        root.getChildren().add(quitText);
+
+        quitText.setOnMouseClicked(event -> Platform.exit());
+    }
 
     private void startGame() {
         fillRandomCell(1);
