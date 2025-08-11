@@ -64,4 +64,5 @@ build/
 
 # Ignore generated test reports
 test-output/
-surefire-reports/
+surefire-reports/target/site/
+*
