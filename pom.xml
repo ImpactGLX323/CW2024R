@@ -41,7 +41,7 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- JavaFX Swing (only if you use JFXPanel in tests) -->
+        <!-- JavaFX Swing (only if JFXPanel used) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
@@ -93,6 +93,33 @@
                 <configuration>
                     <useModulePath>true</useModulePath>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <release>21</release>
+                    <!-- Link to online API docs -->
+                    <links>
+                        <link>https://docs.oracle.com/en/java/javase/21/docs/api/</link>
+                        <link>https://openjfx.io/javadoc/21/</link>
+                    </links>
+
+
+                    <show>private</show>
+                    <encoding>UTF-8</encoding>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- JavaFX launcher plugin; resolves platform-specific natives at run -->
