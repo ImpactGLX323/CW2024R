@@ -44,7 +44,7 @@ public class EndGame {
         endGameShow(endGameScene, root, primaryStage, score,
             () -> {},   // onRestart
             () -> {},   // onMenu
-            () -> {}    // onQuit
+            () -> javafx.application.Platform.exit()    // onQuit
         );
     }
 
@@ -52,7 +52,7 @@ public class EndGame {
                              Runnable onRestart, Runnable onMenu, Runnable onQuit) {
         root.getChildren().clear();
 
-        // --- Set background image ---
+        // Background
         Image bgImage = new Image(getClass().getResource("/com/example/demo/image/Crack2048.jpg").toExternalForm());
         ImageView bgView = new ImageView(bgImage);
         bgView.setFitWidth(endGameScene.getWidth());
@@ -60,7 +60,7 @@ public class EndGame {
         bgView.setPreserveRatio(false);
         root.getChildren().add(bgView);
 
-        // Set dark overlay for readability
+        // Sett dark overlay for readability
         javafx.scene.shape.Rectangle overlay = new javafx.scene.shape.Rectangle(
             endGameScene.getWidth(), endGameScene.getHeight(), Color.rgb(15, 15, 20, 0.7)
         );
