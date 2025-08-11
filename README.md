@@ -197,3 +197,9 @@ mvn clean javafx:run
 | Account      | Account status not implemented |
 | Login        | Login not implemented          |
 | Manual       | Manual not implemented         |
+
+## 10. UML Class Diagram
+
+The class diagram for the project is shown below. Click to open full size.
+
+[![UML Class Diagram](docs/class-diagram/class-diagram.png)](docs/class-diagram/class-diagram.png)

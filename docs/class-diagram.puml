@@ -1,0 +1,99 @@
+@startuml
+!theme spacelab
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "com.example.demo.model" {
+  class Account {
+    - userName : String
+    - score : long
+    - lastScore : long
+    - highScore : long
+    - uid : String
+    - idToken : String
+    + Account(userName : String)
+    + getUserName() : String
+    + getScore() : long
+    + getLastScore() : long
+    + getHighScore() : long
+    + addToScore(additionalScore : long)
+    + recordFinalScore(finalScore : long)
+    + resetSessionScores()
+    + setAuth(uid : String, idToken : String)
+    + isLoggedIn() : boolean
+    + getUid() : String
+    + getIdToken() : String
+    + compareTo(other : Account) : int
+    --
+    {static} - CURRENT : Account
+    {static} + getCurrent() : Account
+    {static} + loginAs(userName : String)
+    {static} + logoutToGuest()
+  }
+}
+
+package "com.example.demo.model" {
+  class Cell {
+    - rectangle : Rectangle
+    - root : Group
+    - textClass : Text
+    - modify : boolean
+    + Cell(x : double, y : double, scale : double, root : Group)
+    + changeCell(cell : Cell)
+    + adder(cell : Cell)
+    + setModify(modify : boolean)
+    + getModify() : boolean
+    + setScoreCallback(cb)
+    + setTextClass(txt : Text)
+    + setColorByNumber(number : int)
+    + getNumber() : int
+    + getX() : double
+    + getY() : double
+  }
+}
+
+package "com.example.demo.utils" {
+  class TextMaker {
+    {static} - singleInstance : TextMaker
+    - TextMaker()
+    {static} + getSingleInstance() : TextMaker
+    + madeText(input : String, xCell : double, yCell : double, root : Group) : Text
+    {static} + changeTwoText(first : Text, second : Text)
+  }
+}
+
+package "com.example.demo.view" {
+  class GameScene {
+    - levelIndex : int
+    - won : boolean
+    - gridSize : int
+    - score : long
+    - cells : Cell[][]
+    - textMaker : TextMaker
+    - root : Group
+    - scoreText : Text
+    - contentLayer : Group
+    + initializeGame()
+    + moveLeft()
+    + moveRight()
+    + moveUp()
+    + moveDown()
+  }
+
+  class EndGame {
+    {static} - singleInstance : EndGame
+    {static} + getInstance() : EndGame
+    + endGameShow()
+  }
+
+  class MainMenu {
+    + showMenu()
+  }
+}
+
+GameScene --> Cell : uses
+GameScene --> TextMaker : uses
+EndGame ..> MainMenu : builds menu
+Account ..|> Comparable
+
+@enduml
