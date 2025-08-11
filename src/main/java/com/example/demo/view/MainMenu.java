@@ -3,11 +3,8 @@ package com.example.demo.view;
 import java.io.InputStream;
 import java.net.URL;
 
-import com.example.demo.model.Account;
-
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -27,6 +24,7 @@ public class MainMenu {
     // Keep a reference so we can stop/dispose when leaving the menu
     private MediaPlayer mediaPlayer;
 
+    // Prefer the app's fonts under /com/example/demo/fonts
     private static Font loadRetroFont(double size) {
         String[] candidates = {
             "/com/example/demo/fonts/Orbitron-VariableFont_wght.ttf",
@@ -43,30 +41,45 @@ public class MainMenu {
         return Font.font("Arial", size);
     }
 
+    /** Call this when you leave the menu to release the video */
+    public void stopBackgroundMedia() {
+        try {
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            }
+        } catch (Throwable ignored) {
+        } finally {
+            mediaPlayer = null;
+        }
+    }
+
     public void showMenu(
             Scene menuScene, Group root, Stage primaryStage,
             Runnable onNewGame, Runnable onLogin, Runnable onManual, Runnable onQuit
     ) {
+        // Clear previous content
         stopBackgroundMedia();
-
         root.getChildren().clear();
+
+        // Base background color (helps hide letterboxing while video loads)
         root.setStyle("-fx-background-color: #0f0f14;");
         if (menuScene.getRoot() != root) {
             menuScene.getRoot().setStyle("-fx-background-color: #0f0f14;");
         }
 
-        // 1) Try video background
+        // 1) Tries video background
         boolean videoAdded = tryAddVideoBackground(menuScene, root,
-                "/com/example/demo/image/MainMenu.mp4"); // <-- place your mp4 here
+                "/com/example/demo/image/MainMenu.mp4"); // place your mp4 here
 
-        // 1.5) Dim overlay ABOVE video, BELOW UI for contrast
+        // 1.5) Dim overlay to improve contrast with UI
         Rectangle dim = new Rectangle();
         dim.widthProperty().bind(menuScene.widthProperty());
         dim.heightProperty().bind(menuScene.heightProperty());
         dim.setFill(Color.color(0, 0, 0, 0.35));
-        root.getChildren().add(dim);
+        root.getChildren().add(dim); // above video / image
 
-        // 2) Fallback image if video missing/failed
+        // 2) Fallback static image if video missing/failed
         if (!videoAdded) {
             URL imgUrl = getClass().getResource("/com/example/demo/image/Crack2048.jpg");
             if (imgUrl != null) {
@@ -75,11 +88,11 @@ public class MainMenu {
                 bgView.fitWidthProperty().bind(menuScene.widthProperty());
                 bgView.fitHeightProperty().bind(menuScene.heightProperty());
                 bgView.setPreserveRatio(false);
-                root.getChildren().add(0, bgView); // under dim
+                root.getChildren().add(0, bgView); // bottom layer
             }
         }
 
-        // 3) Title (neon glow)
+        // Title text
         Font titleFont = loadRetroFont(72);
         Text title = new Text("Crack 2048");
         title.setFont(titleFont);
@@ -94,8 +107,8 @@ public class MainMenu {
         // Center title now + on resize
         Runnable layoutTitle = () -> {
             title.applyCss();
-            double titleX = Math.max(20, (menuScene.getWidth() - title.getLayoutBounds().getWidth()) / 2.0);
-            title.setX(titleX);
+            double x = Math.max(20, (menuScene.getWidth() - title.getLayoutBounds().getWidth()) / 2.0);
+            title.setX(x);
             title.setY(150);
         };
         layoutTitle.run();
@@ -133,36 +146,22 @@ public class MainMenu {
         menuScene.widthProperty().addListener((o, a, b) -> layoutButtons.run());
         menuScene.heightProperty().addListener((o, a, b) -> layoutButtons.run());
 
+        dim.toFront();
         title.toFront();
         newGameButton.toFront();
         loginButton.toFront();
         manualButton.toFront();
         quitButton.toFront();
 
-        // Actions
+        // Actions (stop video when leaving the menu)
         newGameButton.setOnAction(e -> { stopBackgroundMedia(); if (onNewGame != null) onNewGame.run(); });
-        loginButton.setOnAction(e -> {
-            // This is the dummy login for now
-            Account.loginAs("Guest"); 
-            System.out.println("Logged in as: " + Account.getCurrent().getUserName());
-
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                javafx.scene.control.Alert.AlertType.INFORMATION,
-                "Login system coming soon! Continue as Guest."
-            );
-            alert.setHeaderText(null);
-            alert.showAndWait();
-        });
-        manualButton.setOnAction(e -> {
-            System.out.println("Manual feature coming soon!");
-            // Optionally show a popup or alert
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Manual");
-            alert.setHeaderText(null);
-            alert.setContentText("Game manual will be available in a future update.");
-            alert.showAndWait();
-        });
+        loginButton.setOnAction(e -> { /* keep/stop as you prefer */ if (onLogin != null) onLogin.run(); });
+        manualButton.setOnAction(e -> { if (onManual != null) onManual.run(); });
         quitButton.setOnAction(e -> { stopBackgroundMedia(); if (onQuit != null) onQuit.run(); });
+
+        if (primaryStage.getScene() != menuScene) {
+            primaryStage.setScene(menuScene);
+        }
     }
 
     private boolean tryAddVideoBackground(Scene scene, Group root, String resourcePath) {
@@ -179,12 +178,12 @@ public class MainMenu {
             mediaPlayer.setMute(true);
 
             MediaView mediaView = new MediaView(mediaPlayer);
-            mediaView.setMouseTransparent(true);            // never steal clicks
+            mediaView.setMouseTransparent(true); // never steal clicks
             mediaView.setPreserveRatio(false);
             mediaView.fitWidthProperty().bind(scene.widthProperty());
             mediaView.fitHeightProperty().bind(scene.heightProperty());
 
-            root.getChildren().add(0, mediaView); // bottom layer
+            root.getChildren().add(0, mediaView); // bottom-most layer
             return true;
         } catch (MediaException ex) {
             System.err.println("[MainMenu] Failed to load/play video: " + ex);
@@ -192,18 +191,6 @@ public class MainMenu {
         } catch (Throwable t) {
             System.err.println("[MainMenu] Unexpected error loading video: " + t);
             return false;
-        }
-    }
-
-    private void stopBackgroundMedia() {
-        try {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
-            }
-        } catch (Throwable ignored) {
-        } finally {
-            mediaPlayer = null;
         }
     }
 

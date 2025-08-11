@@ -25,7 +25,7 @@ import javafx.stage.Stage;
 
 public class GameScene {
 
-        // --- LEVELS: {gridSize, targetTile} ---
+        // LEVELS FOR THE CODE
     private static final int[][] LEVELS = {
         {4, 2048},  // Level 1: 4x4, target 2048
         {8, 4096},  // Level 2: 8x8, target 4096
@@ -57,7 +57,7 @@ public class GameScene {
     private Font titleFont;
     private Font uiFont;
 
-    // Base size your UI was designed for
+    // Base UI size
     private static final double BASE_W = WIDTH;  // 900
     private static final double BASE_H = HEIGHT; // 700
 
@@ -70,7 +70,7 @@ public class GameScene {
             scene.widthProperty(), scene.heightProperty()
         );
 
-        // Apply scale via a Scale transform (cleaner than binding scaleX/scaleY directly)
+        // Apply scale via a Scale transform 
         Scale s = new Scale();
         s.xProperty().bind(scale);
         s.yProperty().bind(scale);
@@ -113,7 +113,7 @@ public class GameScene {
                     null, null); // no main menu passed
     }
 
-    //  7-arg full method: real implementation (NO delegation here!)
+    //  7-arg full method: real implementation 
     public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
                             Scene endGameScene, Group endGameRoot,
                             Scene menuScene, Group menuRoot) {
@@ -124,7 +124,7 @@ public class GameScene {
         this.root = gameRoot;
         this.primaryStageRef = primaryStage;
 
-        // content layer (for responsive scaling etc.)
+        // content layer (for scaling responsively)
         if (contentLayer == null) {
             contentLayer = new Group();
             gameRoot.getChildren().add(contentLayer);
@@ -140,14 +140,7 @@ public class GameScene {
         initializeCells();
         setupScoreDisplay();
         startGame();
-
-        // --- TEST HOOK: seed winning tile (remove in production) ---
-        cells[0][0].setTextClass(
-            textMaker.madeText(String.valueOf(currentTargetTile()),
-                cells[0][0].getX(),
-                cells[0][0].getY(),
-                root)
-        );
+        
         cells[0][0].setColorByNumber(currentTargetTile());
         // -----------------------------------------------------------
 
