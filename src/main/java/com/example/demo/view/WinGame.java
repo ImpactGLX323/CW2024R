@@ -13,15 +13,53 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * WinGame class manages the victory screen display for the game application.
+ * This class implements the Singleton design pattern to ensure only one instance
+ * exists throughout the application lifecycle.
+ * 
+ * <p>The class is responsible for creating and displaying a win game overlay
+ * with styling consistent with the main menu, including retro fonts, glow effects,
+ * and styled buttons for navigation options.</p>
+ * 
+ * @author Generated JavaDoc
+ * @version 1.0
+ * @since 1.0
+ */
 public class WinGame {
+    
+    /** The single instance of WinGame (Singleton pattern) */
     private static WinGame instance;
+    
+    /**
+     * Private constructor to prevent direct instantiation.
+     * Use {@link #getInstance()} to obtain the singleton instance.
+     */
     private WinGame() {}
+    
+    /**
+     * Returns the singleton instance of WinGame.
+     * Creates a new instance if one doesn't exist.
+     * 
+     * @return the singleton WinGame instance
+     */
     public static WinGame getInstance() {
         if (instance == null) instance = new WinGame();
         return instance;
     }
 
-    // Match MainMenu's font loader
+    /**
+     * Loads a retro-style font from the application's resources.
+     * Attempts to load fonts in the following priority order:
+     * <ol>
+     *   <li>Orbitron-VariableFont_wght.ttf</li>
+     *   <li>VT323-Regular.ttf</li>
+     *   <li>Arial (fallback)</li>
+     * </ol>
+     * 
+     * @param size the desired font size in points
+     * @return a Font object with the specified size, or Arial fallback if retro fonts are unavailable
+     */
     private static Font loadRetroFont(double size) {
         String[] candidates = {
             "/com/example/demo/fonts/Orbitron-VariableFont_wght.ttf",
@@ -38,6 +76,28 @@ public class WinGame {
         return Font.font("Arial", size);
     }
 
+    /**
+     * Creates and displays the win game overlay screen with victory message and navigation options.
+     * 
+     * <p>This method constructs a complete victory screen with:
+     * <ul>
+     *   <li>Background image and dark overlay for visual appeal</li>
+     *   <li>Glowing "YOU WIN!" title text</li>
+     *   <li>Score display</li>
+     *   <li>Three navigation buttons: Next Level, Restart, and Main Menu</li>
+     * </ul>
+     * 
+     * <p>The styling is consistent with the main menu design, using retro fonts
+     * and cyberpunk-inspired color schemes.</p>
+     * 
+     * @param overlayScene the Scene object that will contain the win screen
+     * @param overlayRoot the root Group node to which UI elements will be added
+     * @param stage the primary Stage for displaying the scene
+     * @param score the player's final score to be displayed
+     * @param onNextLevel callback function executed when "Next Level" button is clicked
+     * @param onRestartFromStart callback function executed when "Restart From Start" button is clicked
+     * @param onMenu callback function executed when "Main Menu" button is clicked
+     */
     public void winGameShow(Scene overlayScene, Group overlayRoot, Stage stage, long score,
                             Runnable onNextLevel, Runnable onRestartFromStart, Runnable onMenu) {
 
@@ -88,7 +148,7 @@ public class WinGame {
         scoreText.setFont(scoreFont);
         scoreText.setFill(Color.web("#D6E3FF"));
         scoreText.applyCss();
-        double scoreX = (W - scoreText.getLayoutBounds().getWidth()) / 2.0;
+        double scoreX = (scoreText.getLayoutBounds().getWidth()) / 2.0;
         scoreText.setX(Math.max(20, scoreX));
         scoreText.setY(210);
         overlayRoot.getChildren().add(scoreText);
@@ -130,6 +190,27 @@ public class WinGame {
         stage.setScene(overlayScene);
     }
 
+    /**
+     * Creates a styled button with hover effects matching the game's visual theme.
+     * 
+     * <p>The button features:
+     * <ul>
+     *   <li>Rounded corners with border accent color</li>
+     *   <li>Hover state color changes</li>
+     *   <li>Hand cursor on mouse over</li>
+     *   <li>Bold font styling</li>
+     * </ul>
+     * 
+     * @param text the text to display on the button
+     * @param w the button width in pixels
+     * @param h the button height in pixels
+     * @param font the Font to use for the button text
+     * @param bg the background color in CSS format (e.g., "#1a1f2b")
+     * @param fg the foreground (text) color in CSS format
+     * @param borderAccent the border accent color in CSS format
+     * @param hoverBg the background color when hovering in CSS format
+     * @return a fully configured Button with styling and hover effects
+     */
     private Button makeButton(String text,
                               double w, double h, Font font,
                               String bg, String fg, String borderAccent, String hoverBg) {
@@ -142,6 +223,17 @@ public class WinGame {
         return b;
     }
 
+    /**
+     * Generates the CSS style string for buttons.
+     * 
+     * <p>Creates a consistent button style with rounded corners, border, 
+     * hand cursor, and bold text formatting.</p>
+     * 
+     * @param bg the background color in CSS format
+     * @param fg the foreground (text) color in CSS format  
+     * @param borderAccent the border color in CSS format
+     * @return a CSS style string ready to apply to a button
+     */
     private String baseButtonStyle(String bg, String fg, String borderAccent) {
         return String.join("",
             "-fx-background-color: ", bg, ";",
