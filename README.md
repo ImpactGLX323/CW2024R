@@ -164,20 +164,18 @@ mvn clean javafx:run
 
 ## 7. Implemented Features and Working Properly
 
-| Feature Name              | Reason                                                          | Implementation                                                                                      |
-| ------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 1. Main Menu at the start | Allows user to select options befiore ranomly starting the game | Done through a new class called MainMenu.java <img src="docs/Gameplayimages/MM.png" width="300"/>   |
-| 2. Multiple Level         | Single Level is monotonous for the user                         | Implemented three levels: 4X4, 8X8, 10X10 grids <img src="docs/Gameplayimages/L2.png" width="300"/> |
-
-|
-| 3. Responsive UI | Previous UI was not responsive and not playable | used contentlayer to implement responsive UI in all game levels. No problems during minimisation |
-| 4. Enhanced Graphics| The previous version was not graphical and had misalignents in fonts, orientation and themes which needed to be changed | Used video backgrounds for the Main Menu and proper backgrounds for Win Game, End Game, Level 1, Level 2 |
-| 5. Enhanced cell and tile movement | Previous tile movements have inconsistent colors which needed to be changed to enhanced game experience | Updated the color schemes and tile fonts, made them transparent to fit well with the background |
-| 6. Restart Option | No restart option was present before which reduces gaming experience | Restart options added, enhancing gaming experience and allows user to restart in any levels |
-| 7. Main Menu return option | No options to navigate to Main Menu | Users can now navigate to the main menu even while user is in a game |
-| 8. Functional Quit Game | The previous Quit Game was not functional as it led to crashes of the game| The user can quit the game easily without using the default escape button |
-| 9. Game Over Screen | The Game over screen before was not well designed and user friendly | Comprehensive user friendly Game Over page with functional options for Main Menu, Restart and Quit game |
-| 10. Win Game Screen | Informs the user during the game is won which wasn't present before | User is notified if they win the game and they also have options to restart the game, return to Main Menu or Quit the Game. <img src="docs/Gameplayimages/WIN.png" width="300"/>|
+| Feature Name                       | Reason                                                                              | Implementation                                                                                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Main Menu at the start**      | Allows user to select options before randomly starting the game                     | Done through a new class called `MainMenu.java`. <br> <img src="docs/Gameplayimages/MM.png" width="300"/>                                                  |
+| **2. Multiple Levels**             | Single level is monotonous for the user                                             | Implemented three levels: 4x4, 8x8, 10x10 grids. <br> <img src="docs/Gameplayimages/L2.png" width="300"/>                                                  |
+| **3. Responsive UI**               | Previous UI was not responsive and not playable                                     | Used `contentLayer` to implement responsive UI in all game levels. No problems during minimisation.                                                        |
+| **4. Enhanced Graphics**           | Previous version lacked proper graphics, fonts, and themes                          | Added video backgrounds for the Main Menu and themed backgrounds for Win Game, End Game, and each level.                                                   |
+| **5. Enhanced Cell/Tile Movement** | Previous tile movements had inconsistent colours, reducing the game’s visual appeal | Updated the colour schemes and tile fonts, made them transparent to blend with the background.                                                             |
+| **6. Restart Option**              | No restart option existed, reducing gaming experience                               | Restart option added, allowing users to restart from any level.                                                                                            |
+| **7. Main Menu Return Option**     | No way to navigate back to Main Menu during a game                                  | Users can now navigate to the main menu from anywhere in the game.                                                                                         |
+| **8. Functional Quit Game**        | Quit Game was previously non-functional and caused crashes                          | Quit Game now works without crashes, allowing a safe exit from the game.                                                                                   |
+| **9. Game Over Screen**            | Previous Game Over screen was not user friendly                                     | Added a user-friendly Game Over screen with functional options for Main Menu, Restart, and Quit.                                                           |
+| **10. Win Game Screen**            | No notification when the game was won                                               | Added Win Game screen notifying the user, with options to Restart, return to Main Menu, or Quit. <br> <img src="docs/Gameplayimages/WIN.png" width="300"/> |
 
 ---
 
