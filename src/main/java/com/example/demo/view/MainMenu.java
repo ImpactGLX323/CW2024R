@@ -3,7 +3,6 @@
  * If {@code onLogin}/{@code onManual} are {@code null}, a simple overlay explains
  * the feature is “coming soon”.
  */
-
 package com.example.demo.view;
 
 import java.io.InputStream;
@@ -25,12 +24,26 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * The MainMenu class is responsible for displaying the main menu UI of the application.
+ * It manages the background media (video or image), the neon-styled title, and interactive buttons.
+ * It also handles the lifecycle of media playback and user interactions with the menu buttons.
+ */
 public class MainMenu {
 
-    // Keep a reference so we can stop/dispose when leaving the menu
+    /**
+     * MediaPlayer instance to play and manage the background video.
+     * Kept as a reference to stop and dispose when leaving the menu.
+     */
     private MediaPlayer mediaPlayer;
 
-    // Prefer the app's fonts under /com/example/demo/fonts
+    /**
+     * Loads a retro-style font from the application's font resources.
+     * If none of the preferred fonts are available, falls back to Arial.
+     *
+     * @param size the font size to load
+     * @return the loaded Font instance
+     */
     private static Font loadRetroFont(double size) {
         String[] candidates = {
             "/com/example/demo/fonts/Orbitron-VariableFont_wght.ttf",
@@ -47,7 +60,10 @@ public class MainMenu {
         return Font.font("Arial", size);
     }
 
-    /** Call this when you leave the menu to release the video */
+    /**
+     * Stops and disposes of the background media player to release resources.
+     * Should be called when leaving the menu.
+     */
     public void stopBackgroundMedia() {
         try {
             if (mediaPlayer != null) {
@@ -60,6 +76,18 @@ public class MainMenu {
         }
     }
 
+    /**
+     * Shows the main menu on the given scene and stage, setting up background,
+     * title, buttons, and their event handlers.
+     *
+     * @param menuScene the Scene object where the menu is displayed
+     * @param root the root Group node to add UI elements to
+     * @param primaryStage the primary Stage of the application
+     * @param onNewGame Runnable to execute when "NEW GAME" is clicked
+     * @param onLogin Runnable to execute when "LOGIN" is clicked (can be null)
+     * @param onManual Runnable to execute when "GAME MANUAL" is clicked (can be null)
+     * @param onQuit Runnable to execute when "QUIT GAME" is clicked
+     */
     public void showMenu(
             Scene menuScene, Group root, Stage primaryStage,
             Runnable onNewGame, Runnable onLogin, Runnable onManual, Runnable onQuit
@@ -170,6 +198,14 @@ public class MainMenu {
         }
     }
 
+    /**
+     * Attempts to add a video background to the menu by loading the specified media resource.
+     *
+     * @param scene the Scene to bind the video size to
+     * @param root the root Group to add the MediaView to
+     * @param resourcePath the path to the video resource
+     * @return true if the video was successfully loaded and added; false otherwise
+     */
     private boolean tryAddVideoBackground(Scene scene, Group root, String resourcePath) {
         try {
             URL url = getClass().getResource(resourcePath);
@@ -200,6 +236,20 @@ public class MainMenu {
         }
     }
 
+    /**
+     * Creates a styled button with the specified text, size, font, and colors.
+     * The button changes style on mouse hover.
+     *
+     * @param text the button text
+     * @param w the preferred width
+     * @param h the preferred height
+     * @param font the font to use
+     * @param bg the background color
+     * @param fg the text color
+     * @param borderAccent the border color accent
+     * @param hoverBg the background color when hovered
+     * @return the styled Button instance
+     */
     private Button makeButton(String text,
                               double w, double h, Font font,
                               String bg, String fg, String borderAccent, String hoverBg) {
@@ -212,6 +262,14 @@ public class MainMenu {
         return b;
     }
 
+    /**
+     * Constructs a CSS style string for buttons based on the given colors.
+     *
+     * @param bg background color
+     * @param fg text color
+     * @param borderAccent border color accent
+     * @return CSS style string
+     */
     private String baseButtonStyle(String bg, String fg, String borderAccent) {
         return String.join("",
             "-fx-background-color: ", bg, ";",
