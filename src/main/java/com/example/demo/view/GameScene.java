@@ -1,3 +1,21 @@
+/**
+ * Main gameplay scene for Crack 2048.
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Draw and scale the board responsively- responsive and properly scaled UI</li>
+ *   <li>Handle key input and tile movement/merging</li>
+ *   <li>Track score, display the scores and level progression</li>
+ *   <li>Show Win or EndGame overlays</li>
+ *   <li>Initialize and reset game state</li>
+ *   <li>Manage game levels and grid sizes</li>
+ * </ul>
+ *
+ * <p><strong>Design notes:</strong> The content is rendered in a {@code contentLayer}
+ * which is scaled to preserve aspect ratio; background imagery is placed underneath on
+ * {@code gameRoot}.</p>
+ */
+
 package com.example.demo.view;
 
 import java.io.InputStream;
