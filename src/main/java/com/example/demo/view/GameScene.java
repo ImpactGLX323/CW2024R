@@ -140,7 +140,7 @@ public class GameScene {
         initializeCells();
         setupScoreDisplay();
         startGame();
-        
+
         cells[0][0].setColorByNumber(currentTargetTile());
         // -----------------------------------------------------------
 
@@ -377,18 +377,41 @@ public class GameScene {
             endGameScene, endGameRoot, primaryStage, score,
             // onRestart:
             () -> {
-                gameRootRef.getChildren().clear();
+                // Ensures contentLayer exists and is attached
+                if (contentLayer == null) {
+                    contentLayer = new Group();
+                }
+                if (contentLayer.getParent() != gameRootRef) {
+                    gameRootRef.getChildren().clear();
+                    gameRootRef.getChildren().add(contentLayer);
+                } else {
+                    contentLayer.getChildren().clear();
+                }
+
+                // Re-add/update the background under the content layer
+                setupBackground(gameSceneRef, gameRootRef);
+
+                // Draw into contentLayer (root must point to it)
+                this.root = contentLayer;
+
+                // Reset game state
                 score = 0;
+                won = false;
+
                 initializeCells();
                 setupScoreDisplay();
                 startGame();
                 updateScoreDisplay();
+
+                // Back to the game scene
                 primaryStage.setScene(gameSceneRef);
             },
             // onMenu:
             () -> {
-                menuRoot.getChildren().clear();
-                primaryStage.setScene(menuScene);
+                if (menuRoot != null && menuScene != null) {
+                    menuRoot.getChildren().clear();
+                    primaryStage.setScene(menuScene);
+                }
             },
             // onQuit:
             () -> {
