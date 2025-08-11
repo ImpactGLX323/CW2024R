@@ -12,10 +12,23 @@ import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * Tests for the Main class, focusing on scene creation and menu decoration functions.
+ * These tests use JavaFX Platform initialization and reflection to access private methods.
+ */
 public class MainTest {
 
+    /**
+     * Tracks whether the JavaFX platform has been initialized.
+     */
     private static boolean javafxStarted = false;
 
+    /**
+     * Initializes the JavaFX platform before running any tests.
+     * This ensures that JavaFX components can be created and manipulated during tests.
+     * 
+     * @throws InterruptedException if the thread waiting for JavaFX initialization is interrupted
+     */
     @BeforeAll
     public static void init() throws InterruptedException {
         if (!javafxStarted) {
@@ -32,6 +45,11 @@ public class MainTest {
         }
     }
 
+    /**
+     * Tests that the createScene method correctly creates a Scene with the specified background color
+     * and sets the correct root node.
+     * Asserts that the Scene is not null, has the expected fill color, and the expected root.
+     */
     @Test
     public void testCreateSceneWithBackgroundColor() {
         Platform.runLater(() -> {
@@ -45,6 +63,11 @@ public class MainTest {
         });
     }
 
+    /**
+     * Tests that the createMenuDecorations method adds the expected number of Rectangle nodes
+     * to the provided Group.
+     * Asserts that exactly two Rectangle nodes are added as decorations.
+     */
     @Test
     public void testCreateMenuDecorationsAddsRectangles() {
         Platform.runLater(() -> {
@@ -61,8 +84,14 @@ public class MainTest {
         });
     }
 
-    // === Helper methods using reflection ===
-
+    /**
+     * Uses reflection to invoke the private createScene method of the Main class.
+     * 
+     * @param main the Main instance to invoke the method on
+     * @param root the Group to be used as the root of the Scene
+     * @param color the background Color for the Scene
+     * @return the created Scene instance
+     */
     private Scene mainTest_createScene(Main main, Group root, Color color) {
         try {
             var method = Main.class.getDeclaredMethod("createScene", Group.class, Color.class);
@@ -74,6 +103,13 @@ public class MainTest {
         }
     }
 
+    /**
+     * Uses reflection to invoke the private createMenuDecorations method of the Main class.
+     * This method modifies the provided Group by adding decorations.
+     * 
+     * @param main the Main instance to invoke the method on
+     * @param root the Group to which decorations will be added
+     */
     private void mainTest_createMenuDecorations(Main main, Group root) {
         try {
             var method = Main.class.getDeclaredMethod("createMenuDecorations", Group.class);
