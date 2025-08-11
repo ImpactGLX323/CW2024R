@@ -1,14 +1,17 @@
 /**
- * Crack 2048 — JavaFX implementation with a responsive game board,
- * level progression, and a styled main menu.
+ * Crack 2048 application.
  *
- * <p><strong>Entry point:</strong> {@link com.example.demo.Main}</p>
- * <p><strong>Main UI packages:</strong></p>
+ * <p>Project layout:</p>
  * <ul>
- *   <li>{@link com.example.demo.view} – Scenes and screens (Game, Menu, EndGame, WinGame)</li>
- *   <li>{@link com.example.demo.model} – Data objects (e.g. {@link com.example.demo.model.Cell}, {@link com.example.demo.model.Account})</li>
- *   <li>{@link com.example.demo.utils} – Helpers (e.g. textMaker.java)</li>
+ *   <li><b>view</b> – UI scenes such as
+ *       {@link com.example.demo.view.MainMenu},
+ *       {@link com.example.demo.view.GameScene},
+ *       {@link com.example.demo.view.EndGame}.</li>
+ *   <li><b>model</b> – Data objects like
+ *       {@link com.example.demo.model.Cell} and
+ *       {@link com.example.demo.model.Account}.</li>
+ *   <li><b>utils</b> – Helpers such as
+ *       {@link com.example.demo.utils.TextMaker}.</li>
  * </ul>
  */
-
 package com.example.demo;
