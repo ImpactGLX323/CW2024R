@@ -1,21 +1,3 @@
-/**
- * Main gameplay scene for Crack 2048.
- *
- * <p>Responsibilities:</p>
- * <ul>
- *   <li>Draw and scale the board responsively- responsive and properly scaled UI</li>
- *   <li>Handle key input and tile movement/merging</li>
- *   <li>Track score, display the scores and level progression</li>
- *   <li>Show Win or EndGame overlays</li>
- *   <li>Initialize and reset game state</li>
- *   <li>Manage game levels and grid sizes</li>
- * </ul>
- *
- * <p><strong>Design notes:</strong> The content is rendered in a {@code contentLayer}
- * which is scaled to preserve aspect ratio; background imagery is placed underneath on
- * {@code gameRoot}.</p>
- */
-
 package com.example.demo.view;
 
 import java.io.InputStream;
@@ -41,108 +23,126 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
+/**
+ * Main gameplay scene for Crack 2048.
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Draw and scale the board responsively</li>
+ *   <li>Handle key input and tile movement/merging</li>
+ *   <li>Track score, display the score and manage level progression</li>
+ *   <li>Show Win or EndGame overlays</li>
+ *   <li>Initialize and reset game state</li>
+ *   <li>Manage game levels and grid sizes</li>
+ * </ul>
+ *
+ * <p><strong>Design notes:</strong> The game content is rendered into
+ * a {@code contentLayer} that is scaled to preserve aspect ratio;
+ * background imagery lives underneath on {@code gameRoot}.</p>
+ */
 public class GameScene {
 
-        // LEVELS FOR THE CODE
+    // --- Level descriptors: {gridSize, targetTile} ---
     private static final int[][] LEVELS = {
-        {4, 2048},  // Level 1: 4x4, target 2048
-        {8, 4096},  // Level 2: 8x8, target 4096
-        {10, 8192}  // Level 3: 10x10, target 8192
+        {4, 2048},
+        {8, 4096},
+        {10, 8192}
     };
 
-    private int levelIndex = 0;      // starts at level 1 (index 0)
-    private boolean won = false;     // preventing double popups
+    private int levelIndex = 0;             // current level (0-based)
+    private boolean won = false;            // prevents duplicate win overlays
     private static int gridSize = 4;
     private static final int HEIGHT = 700;
-    private static final int WIDTH = 900; // Add this if not present
+    private static final int WIDTH = 900;
     private static final int DISTANCE_BETWEEN_CELLS = 10;
     private static double cellLength = calculateCellLength();
-    
+
     private final TextMaker textMaker = TextMaker.getSingleInstance();
-    private Cell[][] cells; //cahnged this to dynamic not final
+    private Cell[][] cells;
     private Group root;
     private long score = 0;
-    private Text scoreText; // Store reference to score display
+    private Text scoreText;
+
+    // Kept for clarity (refs to originals)
     private Scene gameScene;
     private Group gameRoot;
+
+    // Optional menu references (may be null)
     private Scene menuScene;
     private Group menuRoot;
+
+    // Refs used throughout
     private Scene gameSceneRef;
     private Group gameRootRef;
     private Stage primaryStageRef;
+
+    // Visuals
     private Group contentLayer;
     private ImageView bgView;
     private Font titleFont;
     private Font uiFont;
 
-    // Base UI size
-    private static final double BASE_W = WIDTH;  // 900
-    private static final double BASE_H = HEIGHT; // 700
+    // Base UI size for responsive scaling
+    private static final double BASE_W = WIDTH;
+    private static final double BASE_H = HEIGHT;
 
-    private void setupResponsiveLayout(Scene scene) {
-        if (contentLayer == null) return;
-
-        // Scale factor that preserves aspect ratio
-        DoubleBinding scale = Bindings.createDoubleBinding(
-            () -> Math.min(scene.getWidth() / BASE_W, scene.getHeight() / BASE_H),
-            scene.widthProperty(), scene.heightProperty()
-        );
-
-        // Apply scale via a Scale transform 
-        Scale s = new Scale();
-        s.xProperty().bind(scale);
-        s.yProperty().bind(scale);
-        contentLayer.getTransforms().setAll(s);
-
-        // Center the scaled content
-        ChangeListener<Object> centerer = (obs, oldV, newV) -> {
-            double k = scale.get();
-            double contentW = BASE_W * k;
-            double contentH = BASE_H * k;
-            contentLayer.setLayoutX((scene.getWidth() - contentW) / 2.0);
-            contentLayer.setLayoutY((scene.getHeight() - contentH) / 2.0);
-        };
-
-        // Recenter on resize
-        scene.widthProperty().addListener(centerer);
-        scene.heightProperty().addListener(centerer);
-        // Initial center
-        centerer.changed(null, null, null);
-    }
-
+    /**
+     * Sets the grid size (number of rows/columns) used to compute cell dimensions.
+     *
+     * @param size grid dimension (e.g., 4, 8, 10)
+     */
     public static void setGridSize(int size) {
         gridSize = size;
         cellLength = calculateCellLength();
     }
 
+    /**
+     * Returns the current cell side length in pixels (derived from grid size and scene height).
+     *
+     * @return current cell length
+     */
     public static double getCellLength() {
         return cellLength;
     }
 
-    private static double calculateCellLength() {
-        return (HEIGHT - ((gridSize + 1) * DISTANCE_BETWEEN_CELLS)) / (double) gridSize;
-    }
-
-  // 5-arg overload: only delegates to the 7-arg version.
+    /**
+     * Initializes the game without a main menu reference.
+     * Delegates to the 7-argument overload with {@code null} menu scene/root.
+     *
+     * @param gameScene     the live game {@link Scene}
+     * @param gameRoot      the base {@link Group} for the game
+     * @param primaryStage  the primary window
+     * @param endGameScene  the scene reused for the EndGame/Win overlays
+     * @param endGameRoot   the root used by the EndGame/Win overlays
+     */
     public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
-                            Scene endGameScene, Group endGameRoot) {
+                               Scene endGameScene, Group endGameRoot) {
         initializeGame(gameScene, gameRoot, primaryStage,
-                    endGameScene, endGameRoot,
-                    null, null); // no main menu passed
+                       endGameScene, endGameRoot,
+                       null, null);
     }
 
-    //  7-arg full method: real implementation 
+    /**
+     * Initializes the gameplay UI, grid, score box, key handlers, and background.
+     *
+     * @param gameScene     the live game {@link Scene}
+     * @param gameRoot      the base {@link Group} for the game
+     * @param primaryStage  the primary window
+     * @param endGameScene  the scene reused for EndGame/Win overlays
+     * @param endGameRoot   the root group used by EndGame/Win overlays
+     * @param menuScene     optional main menu {@link Scene} (nullable)
+     * @param menuRoot      optional main menu {@link Group} (nullable)
+     */
     public void initializeGame(Scene gameScene, Group gameRoot, Stage primaryStage,
-                            Scene endGameScene, Group endGameRoot,
-                            Scene menuScene, Group menuRoot) {
+                               Scene endGameScene, Group endGameRoot,
+                               Scene menuScene, Group menuRoot) {
         this.gameSceneRef = gameScene;
         this.gameRootRef = gameRoot;
-        this.menuScene = menuScene;          
-        this.menuRoot  = menuRoot;           
+        this.menuScene = menuScene;
+        this.menuRoot  = menuRoot;
         this.root = gameRoot;
         this.primaryStageRef = primaryStage;
 
-        // content layer (for scaling responsively)
         if (contentLayer == null) {
             contentLayer = new Group();
             gameRoot.getChildren().add(contentLayer);
@@ -152,30 +152,264 @@ public class GameScene {
         titleFont = loadRetroFont(48);
         uiFont    = loadRetroFont(20);
 
-        setupBackground(gameSceneRef, gameRootRef);  // keeps bgView on gameRoot
+        setupBackground(gameSceneRef, gameRootRef);
         setupResponsiveLayout(gameSceneRef);
 
         initializeCells();
         setupScoreDisplay();
         startGame();
 
+        // Cosmetic color seed on the first cell; safe no-op if text is empty
         cells[0][0].setColorByNumber(currentTargetTile());
-        // -----------------------------------------------------------
 
         setupKeyHandlers(gameScene, primaryStage, endGameScene, endGameRoot);
     }
 
-   private void initializeCells() {
-        gridSize = currentGridSize();
-            cellLength = calculateCellLength();
+    /**
+     * Initiates a fresh board by spawning two cells.
+     */
+    private void startGame() {
+        fillRandomCell(1);
+        fillRandomCell(1);
+    }
 
-        // allocate cells fresh each time (different level sizes)
+    /**
+     * Installs key handlers for movement and post-move state updates.
+     *
+     * @param gameScene    the scene listening for key presses
+     * @param primaryStage the main stage
+     * @param endGameScene overlay scene
+     * @param endGameRoot  overlay root
+     */
+    private void setupKeyHandlers(Scene gameScene, Stage primaryStage,
+                                  Scene endGameScene, Group endGameRoot) {
+        gameScene.addEventHandler(KeyEvent.KEY_PRESSED, key -> {
+            Platform.runLater(() -> {
+                handleKeyPress(key.getCode());
+                updateGameState(primaryStage, endGameScene, endGameRoot);
+            });
+        });
+    }
+
+    /**
+     * Handles arrow-key input by invoking the corresponding move method.
+     *
+     * @param code the pressed {@link KeyCode}
+     */
+    private void handleKeyPress(KeyCode code) {
+        switch (code) {
+            case DOWN -> moveDown();
+            case UP -> moveUp();
+            case LEFT -> moveLeft();
+            case RIGHT -> moveRight();
+            default -> {}
+        }
+    }
+
+    /**
+     * Re-evaluates the game state after a move:
+     * <ul>
+     *   <li>Show win overlay if target tile reached</li>
+     *   <li>Spawn a new random tile if empty space exists</li>
+     *   <li>Show game over if no moves remain</li>
+     * </ul>
+     *
+     * @param primaryStage main stage
+     * @param endGameScene overlay scene
+     * @param endGameRoot  overlay root group
+     */
+
+     /**
+ * Returns true if any cell on the board has reached or exceeded
+ * the current level's target tile value.
+ *
+ * @return {@code true} if target tile is reached; {@code false} otherwise
+ */
+    private boolean reachedTarget() {
+        int target = currentTargetTile();
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (cells[i][j].getNumber() >= target) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void updateGameState(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+        if (!won && reachedTarget()) {
+            won = true;
+            showWin(primaryStage, endGameScene, endGameRoot);
+            return;
+        }
+
+        int emptyCellStatus = checkEmptyCells();
+
+        if (emptyCellStatus == -1 && canNotMove()) {
+            endGame(primaryStage, endGameScene, endGameRoot);
+        } else if (emptyCellStatus == 1) {
+            fillRandomCell(2);
+        }
+    }
+
+    /**
+     * Shows the EndGame overlay and wires its callbacks (restart, menu, quit).
+     *
+     * @param primaryStage main stage
+     * @param endGameScene overlay scene
+     * @param endGameRoot  overlay root
+     */
+    private void endGame(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
+        primaryStage.setScene(endGameScene);
+
+        EndGame.getInstance().endGameShow(
+            endGameScene, endGameRoot, primaryStage, score,
+            // onRestart:
+            () -> {
+                if (contentLayer == null) {
+                    contentLayer = new Group();
+                }
+                if (contentLayer.getParent() != gameRootRef) {
+                    gameRootRef.getChildren().clear();
+                    gameRootRef.getChildren().add(contentLayer);
+                } else {
+                    contentLayer.getChildren().clear();
+                }
+
+                setupBackground(gameSceneRef, gameRootRef);
+                this.root = contentLayer;
+
+                score = 0;
+                won = false;
+
+                initializeCells();
+                setupScoreDisplay();
+                startGame();
+                updateScoreDisplay();
+
+                primaryStage.setScene(gameSceneRef);
+            },
+            // onMenu:
+            () -> {
+                if (menuRoot != null && menuScene != null) {
+                    menuRoot.getChildren().clear();
+                    primaryStage.setScene(menuScene);
+                }
+            },
+            // onQuit:
+            () -> {
+                endGameRoot.getChildren().clear();
+                Platform.exit();
+            }
+        );
+    }
+
+    // ----------------- Movement API (public for tests) -----------------
+
+    /**
+     * Performs a left move and merges compatible tiles.
+     */
+    public void moveLeft() {
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 1; j < gridSize; j++) {
+                moveHorizontally(i, j, calculateDestination(i, j, 'l'), -1);
+            }
+            resetModifyFlags(i);
+        }
+    }
+
+    /**
+     * Performs a right move and merges compatible tiles.
+     */
+    public void moveRight() {
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = gridSize - 1; j >= 0; j--) {
+                moveHorizontally(i, j, calculateDestination(i, j, 'r'), 1);
+            }
+            resetModifyFlags(i);
+        }
+    }
+
+    /**
+     * Performs an upward move and merges compatible tiles.
+     */
+    public void moveUp() {
+        for (int j = 0; j < gridSize; j++) {
+            for (int i = 1; i < gridSize; i++) {
+                moveVertically(i, j, calculateDestination(i, j, 'u'), -1);
+            }
+            resetVerticalModifyFlags(j);
+        }
+    }
+
+    /**
+     * Performs a downward move and merges compatible tiles.
+     */
+    public void moveDown() {
+        for (int j = 0; j < gridSize; j++) {
+            for (int i = gridSize - 1; i >= 0; i--) {
+                moveVertically(i, j, calculateDestination(i, j, 'd'), 1);
+            }
+            resetVerticalModifyFlags(j);
+        }
+    }
+
+    // ----------------- UI / Layout helpers -----------------
+
+    /**
+     * Sets up a responsive layout by scaling {@code contentLayer} to fit the scene.
+     *
+     * @param scene scene whose size drives the scale
+     */
+    private void setupResponsiveLayout(Scene scene) {
+        if (contentLayer == null) return;
+
+        DoubleBinding scale = Bindings.createDoubleBinding(
+            () -> Math.min(scene.getWidth() / BASE_W, scene.getHeight() / BASE_H),
+            scene.widthProperty(), scene.heightProperty()
+        );
+
+        Scale s = new Scale();
+        s.xProperty().bind(scale);
+        s.yProperty().bind(scale);
+        contentLayer.getTransforms().setAll(s);
+
+        ChangeListener<Object> centerer = (obs, oldV, newV) -> {
+            double k = scale.get();
+            double contentW = BASE_W * k;
+            double contentH = BASE_H * k;
+            contentLayer.setLayoutX((scene.getWidth() - contentW) / 2.0);
+            contentLayer.setLayoutY((scene.getHeight() - contentH) / 2.0);
+        };
+
+        scene.widthProperty().addListener(centerer);
+        scene.heightProperty().addListener(centerer);
+        centerer.changed(null, null, null);
+    }
+
+    /**
+     * Updates the on-screen score text (if present).
+     */
+    private void updateScoreDisplay() {
+        if (scoreText != null) {
+            scoreText.setText(String.valueOf(score));
+        }
+    }
+
+    // ----------------- Board / cells -----------------
+
+    /**
+     * Allocates and positions the grid of {@link Cell} objects.
+     * Also registers a merge callback to accumulate score.
+     */
+    private void initializeCells() {
+        gridSize = currentGridSize();
+        cellLength = calculateCellLength();
+
         cells = new Cell[gridSize][gridSize];
         double xOffset = 50;
-
-        // shrink only for small grids; big grids are already small
         double scaledCellLength = (gridSize <= 4) ? cellLength * 0.75 : cellLength;
-
         double yOffset = 180;
 
         for (int i = 0; i < gridSize; i++) {
@@ -185,7 +419,6 @@ public class GameScene {
 
                 cells[i][j] = new Cell(x, y, scaledCellLength, root);
 
-                // score callback preserved
                 cells[i][j].setScoreCallback(mergedValue -> {
                     score += mergedValue;
                     updateScoreDisplay();
@@ -194,16 +427,10 @@ public class GameScene {
         }
     }
 
-    private boolean reachedTarget() {
-        int target = currentTargetTile();
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                if (cells[i][j].getNumber() >= target) return true;
-            }
-        }
-        return false;
-    }
-
+    /**
+     * Places the title, score box, and right-side control labels (Restart, Main Menu, Quit).
+     * Wires mouse handlers for those labels.
+     */
     private void setupScoreDisplay() {
         // Title
         Text title = new Text("Crack 2048");
@@ -215,9 +442,9 @@ public class GameScene {
         title.setY(80);
         root.getChildren().add(title);
 
-        // SCORE
+        // Score panel
         double boxW = 130, boxH = 80;
-        double boxX = BASE_W - boxW - 70;  
+        double boxX = BASE_W - boxW - 70;
         double boxY = 40;
 
         Rectangle scoreBox = new Rectangle(boxW, boxH);
@@ -242,11 +469,11 @@ public class GameScene {
         scoreText.setY(boxY + 55);
         root.getChildren().add(scoreText);
 
-        //  Right-side vertical buttons 
+        // Right-side labels acting as buttons
         double buttonWidth = 130;
         double buttonHeight = 80;
         double spacing = 20;
-        double startX = BASE_W - buttonWidth - 30;                // right margin
+        double startX = BASE_W - buttonWidth - 30;
         double yBottom = BASE_H - (buttonHeight * 3 + spacing * 2) - 30;
 
         // Restart
@@ -318,9 +545,9 @@ public class GameScene {
                         primaryStageRef.setScene(gameSceneRef);
                     },
                     // onLogin:
-                    () -> { /* TODO: login overlay later */ },
+                    () -> { /* reserved for future login overlay */ },
                     // onManual:
-                    () -> { /* TODO: manual overlay later */ },
+                    () -> { /* reserved for future manual overlay */ },
                     // onQuit:
                     Platform::exit
                 );
@@ -347,96 +574,72 @@ public class GameScene {
         quitText.setOnMouseClicked(event -> Platform.exit());
     }
 
-    private void startGame() {
-        fillRandomCell(1);
-        fillRandomCell(1);
-    }
+    // ----------------- Movement primitives -----------------
 
-    private void setupKeyHandlers(Scene gameScene, Stage primaryStage, 
-                                Scene endGameScene, Group endGameRoot) {
-        gameScene.addEventHandler(KeyEvent.KEY_PRESSED, key -> {
-            Platform.runLater(() -> {
-                handleKeyPress(key.getCode());
-                updateGameState(primaryStage, endGameScene, endGameRoot);
-            });
-        });
-    }
-
-    private void handleKeyPress(KeyCode code) {
-        switch (code) {
-            case DOWN -> moveDown();
-            case UP -> moveUp();
-            case LEFT -> moveLeft();
-            case RIGHT -> moveRight();
-            default -> {}
+    private void resetModifyFlags(int row) {
+        for (int j = 0; j < gridSize; j++) {
+            cells[row][j].setModify(false);
         }
     }
 
-        private void updateGameState(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
-        if (!won && reachedTarget()) {
-            won = true;
-            showWin(primaryStage, endGameScene, endGameRoot);
-            return;
-        }
-
-        int emptyCellStatus = checkEmptyCells();
-
-        if (emptyCellStatus == -1 && canNotMove()) {
-            endGame(primaryStage, endGameScene, endGameRoot);
-        } else if (emptyCellStatus == 1) {
-            fillRandomCell(2);
+    private void resetVerticalModifyFlags(int col) {
+        for (int i = 0; i < gridSize; i++) {
+            cells[i][col].setModify(false);
         }
     }
 
-    private void endGame(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
-        primaryStage.setScene(endGameScene);
+    private boolean isValidHorizontalMove(int i, int j, int des, int sign) {
+        return des + sign < gridSize && des + sign >= 0
+            && cells[i][des + sign].getNumber() == cells[i][j].getNumber()
+            && !cells[i][des + sign].getModify()
+            && cells[i][des + sign].getNumber() != 0;
+    }
 
-        EndGame.getInstance().endGameShow(
-            endGameScene, endGameRoot, primaryStage, score,
-            // onRestart:
-            () -> {
-                // Ensures contentLayer exists and is attached
-                if (contentLayer == null) {
-                    contentLayer = new Group();
+    private void moveHorizontally(int i, int j, int des, int sign) {
+        if (isValidHorizontalMove(i, j, des, sign)) {
+            int mergedValue = cells[i][j].getNumber() + cells[i][des + sign].getNumber();
+            cells[i][j].adder(cells[i][des + sign]);
+            score += mergedValue;
+            updateScoreDisplay();
+            cells[i][des].setModify(true);
+        } else if (des != j) {
+            cells[i][j].changeCell(cells[i][des]);
+        }
+    }
+
+    private boolean isValidVerticalMove(int i, int j, int des, int sign) {
+        return des + sign < gridSize && des + sign >= 0
+            && cells[des + sign][j].getNumber() == cells[i][j].getNumber()
+            && !cells[des + sign][j].getModify()
+            && cells[des + sign][j].getNumber() != 0;
+    }
+
+    private void moveVertically(int i, int j, int des, int sign) {
+        if (isValidVerticalMove(i, j, des, sign)) {
+            int mergedValue = cells[i][j].getNumber() + cells[des + sign][j].getNumber();
+            cells[i][j].adder(cells[des + sign][j]);
+            score += mergedValue;
+            updateScoreDisplay();
+            cells[des][j].setModify(true);
+        } else if (des != i) {
+            cells[i][j].changeCell(cells[des][j]);
+        }
+    }
+
+    private boolean hasSameNeighbor(int i, int j) {
+        return (i < gridSize - 1 && cells[i + 1][j].getNumber() == cells[i][j].getNumber())
+            || (j < gridSize - 1 && cells[i][j + 1].getNumber() == cells[i][j].getNumber());
+    }
+
+    private boolean canNotMove() {
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (hasSameNeighbor(i, j)) {
+                    return false;
                 }
-                if (contentLayer.getParent() != gameRootRef) {
-                    gameRootRef.getChildren().clear();
-                    gameRootRef.getChildren().add(contentLayer);
-                } else {
-                    contentLayer.getChildren().clear();
-                }
-
-                // Re-add/update the background under the content layer
-                setupBackground(gameSceneRef, gameRootRef);
-
-                // Draw into contentLayer (root must point to it)
-                this.root = contentLayer;
-
-                // Reset game state
-                score = 0;
-                won = false;
-
-                initializeCells();
-                setupScoreDisplay();
-                startGame();
-                updateScoreDisplay();
-
-                // Back to the game scene
-                primaryStage.setScene(gameSceneRef);
-            },
-            // onMenu:
-            () -> {
-                if (menuRoot != null && menuScene != null) {
-                    menuRoot.getChildren().clear();
-                    primaryStage.setScene(menuScene);
-                }
-            },
-            // onQuit:
-            () -> {
-                endGameRoot.getChildren().clear();
-                Platform.exit();
             }
-        );
+        }
+        return true;
     }
 
     private void fillRandomCell(int turn) {
@@ -445,14 +648,14 @@ public class GameScene {
 
         boolean putTwo = new Random().nextBoolean();
         int number = putTwo ? 2 : 4;
-        
+
         Text text = textMaker.madeText(
-            String.valueOf(number), 
-            randomCell.getX(), 
-            randomCell.getY(), 
+            String.valueOf(number),
+            randomCell.getX(),
+            randomCell.getY(),
             root
         );
-        
+
         randomCell.setTextClass(text);
         root.getChildren().add(text);
         randomCell.setColorByNumber(number);
@@ -461,7 +664,7 @@ public class GameScene {
     private Cell findRandomEmptyCell() {
         Cell[] emptyCells = new Cell[gridSize * gridSize];
         int count = 0;
-        
+
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 if (cells[i][j].getNumber() == 0) {
@@ -472,7 +675,7 @@ public class GameScene {
                 }
             }
         }
-        
+
         if (count == 0) return null;
         return emptyCells[new Random().nextInt(count)];
     }
@@ -486,6 +689,8 @@ public class GameScene {
         }
         return -1;
     }
+
+    // ----------------- Navigation helpers -----------------
 
     private int calculateDestination(int i, int j, char direction) {
         return switch (direction) {
@@ -525,118 +730,8 @@ public class GameScene {
         return gridSize - 1;
     }
 
-    public void moveLeft() {
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 1; j < gridSize; j++) {
-                moveHorizontally(i, j, calculateDestination(i, j, 'l'), -1);
-            }
-            resetModifyFlags(i);
-        }
-    }
+    // ----------------- Level helpers & visuals -----------------
 
-    public void moveRight() {
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = gridSize - 1; j >= 0; j--) {
-                moveHorizontally(i, j, calculateDestination(i, j, 'r'), 1);
-            }
-            resetModifyFlags(i);
-        }
-    }
-
-    public void moveUp() {
-        for (int j = 0; j < gridSize; j++) {
-            for (int i = 1; i < gridSize; i++) {
-                moveVertically(i, j, calculateDestination(i, j, 'u'), -1);
-            }
-            resetVerticalModifyFlags(j);
-        }
-    }
-
-    public void moveDown() {
-        for (int j = 0; j < gridSize; j++) {
-            for (int i = gridSize - 1; i >= 0; i--) {
-                moveVertically(i, j, calculateDestination(i, j, 'd'), 1);
-            }
-            resetVerticalModifyFlags(j);
-        }
-    }
-
-    private void resetModifyFlags(int row) {
-        for (int j = 0; j < gridSize; j++) {
-            cells[row][j].setModify(false);
-        }
-    }
-
-    private void resetVerticalModifyFlags(int col) {
-        for (int i = 0; i < gridSize; i++) {
-            cells[i][col].setModify(false);
-        }
-    }
-
-    private boolean isValidHorizontalMove(int i, int j, int des, int sign) {
-        return des + sign < gridSize && des + sign >= 0 
-            && cells[i][des + sign].getNumber() == cells[i][j].getNumber() 
-            && !cells[i][des + sign].getModify() 
-            && cells[i][des + sign].getNumber() != 0;
-    }
-
-    private void moveHorizontally(int i, int j, int des, int sign) {
-        if (isValidHorizontalMove(i, j, des, sign)) {
-            int mergedValue = cells[i][j].getNumber() + cells[i][des + sign].getNumber();
-            cells[i][j].adder(cells[i][des + sign]);
-            score += mergedValue; // Add this line
-            updateScoreDisplay(); // Add this line to update the UI
-            cells[i][des].setModify(true);
-        } else if (des != j) {
-            cells[i][j].changeCell(cells[i][des]);
-        }
-    }
-    private boolean isValidVerticalMove(int i, int j, int des, int sign) {
-        return des + sign < gridSize && des + sign >= 0
-            && cells[des + sign][j].getNumber() == cells[i][j].getNumber()
-            && !cells[des + sign][j].getModify()
-            && cells[des + sign][j].getNumber() != 0;
-    }
-    
-    private void moveVertically(int i, int j, int des, int sign) {
-        if (isValidVerticalMove(i, j, des, sign)) {
-            int mergedValue = cells[i][j].getNumber() + cells[des + sign][j].getNumber();
-            cells[i][j].adder(cells[des + sign][j]);
-            score += mergedValue; // Add this line
-            updateScoreDisplay(); // Add this line to update the UI
-            cells[des][j].setModify(true);
-        } else if (des != i) {
-            cells[i][j].changeCell(cells[des][j]);
-        }
-    }
-
-    private boolean hasSameNeighbor(int i, int j) {
-        return (i < gridSize - 1 && cells[i + 1][j].getNumber() == cells[i][j].getNumber())
-            || (j < gridSize - 1 && cells[i][j + 1].getNumber() == cells[i][j].getNumber());
-    }
-
-    private boolean canNotMove() {
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                if (hasSameNeighbor(i, j)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private void updateScoreDisplay() {
-        if (scoreText != null) {
-            scoreText.setText(String.valueOf(score));
-        }
-    }
-    public static void setCellLength(double len) {
-    cellLength = len;
-}
-
-
-//HELPERS FOR NEW LEVEL 
     private int currentGridSize() {
         return LEVELS[levelIndex][0];
     }
@@ -649,8 +744,14 @@ public class GameScene {
         return levelIndex >= LEVELS.length - 1;
     }
 
-        private void showWin(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
-        // Reuse a separate WinGame overlay similar to EndGame
+    /**
+     * Displays the Win overlay and wires its callbacks (next level, restart, menu).
+     *
+     * @param primaryStage main stage
+     * @param endGameScene overlay scene
+     * @param endGameRoot  overlay root
+     */
+    private void showWin(Stage primaryStage, Scene endGameScene, Group endGameRoot) {
         WinGame.getInstance().winGameShow(
             endGameScene, endGameRoot, primaryStage, score,
             // onNextLevel:
@@ -658,7 +759,7 @@ public class GameScene {
                 if (!isLastLevel()) {
                     levelIndex++;
                     contentLayer.getChildren().clear();
-                    setupBackground(gameSceneRef, gameRootRef); 
+                    setupBackground(gameSceneRef, gameRootRef);
                     score = 0;
                     won = false;
                     initializeCells();
@@ -673,7 +774,7 @@ public class GameScene {
             },
             // onRestartFromStart:
             () -> {
-                levelIndex = 0; // back to level 1
+                levelIndex = 0;
                 contentLayer.getChildren().clear();
                 setupBackground(gameSceneRef, gameRootRef);
                 score = 0;
@@ -692,6 +793,12 @@ public class GameScene {
         );
     }
 
+    /**
+     * Loads a bundled retro font, falling back to Arial if the font cannot be found.
+     *
+     * @param size font size in points
+     * @return a loaded {@link Font}
+     */
     private static Font loadRetroFont(double size) {
         String[] candidates = {
             "/com/example/demo/fonts/Orbitron-VariableFont_wght.ttf",
@@ -705,9 +812,16 @@ public class GameScene {
                 }
             } catch (Exception ignored) {}
         }
-        return Font.font("Arial", size); // fallback
+        return Font.font("Arial", size);
     }
 
+    /**
+     * Sets the background image appropriate to the current level and ensures
+     * it sits underneath the scaled content layer.
+     *
+     * @param scene    scene to bind background size to
+     * @param baseRoot base root that owns the background node
+     */
     private void setupBackground(Scene scene, Group baseRoot) {
         final String bgPath = switch (currentGridSize()) {
             case 4  -> "/com/example/demo/image/level1_bg.jpg";
@@ -723,7 +837,6 @@ public class GameScene {
             bgView.fitHeightProperty().bind(scene.heightProperty());
             baseRoot.getChildren().add(0, bgView); // bottom-most
         } else if (bgView.getParent() != baseRoot) {
-            // move from old parent (if any)
             ((Group) bgView.getParent()).getChildren().remove(bgView);
             baseRoot.getChildren().add(0, bgView);
         }
@@ -736,6 +849,24 @@ public class GameScene {
         bgView.setImage(new Image(url.toExternalForm()));
         System.out.println("[GameScene] Background set: " + bgPath);
     }
+
+    // ----------------- statics -----------------
+
+    /**
+     * Computes the cell size from the current grid size and scene height.
+     *
+     * @return side length in pixels
+     */
+    private static double calculateCellLength() {
+        return (HEIGHT - ((gridSize + 1) * DISTANCE_BETWEEN_CELLS)) / (double) gridSize;
+    }
+
+    /**
+     * Overrides the computed cell length (primarily for testing/layout tweaks).
+     *
+     * @param len new cell length in pixels
+     */
+    public static void setCellLength(double len) {
+        cellLength = len;
+    }
 }
-
-
