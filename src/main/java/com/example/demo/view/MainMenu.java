@@ -1,3 +1,9 @@
+/**
+ * Main menu with video/image background, neon title, and action buttons.
+ * If {@code onLogin}/{@code onManual} are {@code null}, a simple overlay explains
+ * the feature is “coming soon”.
+ */
+
 package com.example.demo.view;
 
 import java.io.InputStream;
