@@ -16,7 +16,7 @@
 
 ## 1. GitHub Repository Link
 
-[**CW2024 Repository**](https://github.com/your-username/CW2024R)
+[**CW2024 Repository**](https://github.com/ImpactGLX323/CW2024R)
 
 ---
 
@@ -108,7 +108,7 @@ Before running the project, ensure you have:
 **Option 1 — Git clone (recommended):**
 
 ```bash
-git clone https://github.com/<your-user>/CW2024R.git
+git clone https://github.com/ImpactGLX323/CW2024R.git
 cd CW2024R
 ```
 
